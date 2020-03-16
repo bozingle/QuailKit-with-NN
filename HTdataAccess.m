@@ -89,11 +89,12 @@ function val = Read(app)
         for k=1:size(app.micPaths,2)
             [raw,~]=audioread(fullfile(app.dataPath,'Mics',app.micPaths(k).name),app.loadInterval);
             app.audioSamples(:,2*k-1:2*k)= zscore(raw);
+            
             %handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,handles.AudioChannel)); 
-            Fn = app.Fs/2;
-            Wp = 1000/Fn;
-            Ws = 3000/Fn;
-            raw = bandpass(raw,[Wp,Ws]);
+%             Fn = app.Fs/2;
+%             Wp = 1000/Fn;
+%             Ws = 3000/Fn;
+%             raw = bandpass(raw,[Wp,Ws]);
             app.AudioFilePlay(1:size(raw,1),k) = raw(:,1) + raw(:,2);
         end
 
