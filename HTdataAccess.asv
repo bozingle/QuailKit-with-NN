@@ -79,7 +79,7 @@ function val = Read(app)
             end
             app.subInterval = app.initialSubInterval;
             
-            app.SubSamples = app.subInterval(2)*app.loadIntervalRate/app.loadSubIntervalRate;
+            app.SubSamples = app.subInterval(2)*;
         else
             app.TS=setuniformtime(app.TS,'StartTime',0,'Interval',1/app.Fs);
             app.TS.Time = app.TS.Time+(app.curLoadInterval-1)*app.loadIntervalRate;
