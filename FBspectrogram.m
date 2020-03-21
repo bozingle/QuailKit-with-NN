@@ -2,17 +2,19 @@ function [s,t] = FBspectrogram(app)
 
 s = cell(1,4); t= cell(1,4);
 row= [1,3,5,7];
+
+
 for i = 1:4
 %[s{i},~,t{i}] = spectrogram(app.AudioFilePlay(app.subInterval(1):...
 %    app.subInterval(2),i),app.wind,app.noverlap,app.F,app.Fs);
 
-x1 = app.audioSamples(app.subInterval(1):app.subInterval(2),row(i));
-x2 = app.audioSamples(app.subInterval(1):app.subInterval(2),row(i)+1);
-    
-[s1,~,t{i}] = spectrogram(x1,app.wind,app.noverlap,app.F,app.Fs);
-[s2,~,t{i}] = spectrogram(x2,app.wind,app.noverlap,app.F,app.Fs);
-s{i} = s1 +s2;
-s{i}= db(abs(s{i}));
+x = (app.audioSamples(app.subInterval(1):app.subInterval(2),row(i)) + ...
+    app.audioSamples(app.subInterval(1):app.subInterval(2),row(i)+1))/2;
+window = app.Fs*app.window_size;
+noverlap = round(app.noverlap_size*window);
+[s{i},~,t{i}] = spectrogram(x,window,noverlap,app.F,app.Fs);
+
+s{i}= abs(s{i});
 
 
 %Here we should add the 10s that we are in to "t"
