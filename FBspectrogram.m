@@ -1,34 +1,32 @@
-function [s,t] = FBspectrogram(app)
+function s = FBspectrogram(app)
 
-s = cell(1,4); t= cell(1,4);
+s = cell(1,4);% t= cell(1,4);
 row= [1,3,5,7];
 
 
 for i = 1:4
-%[s{i},~,t{i}] = spectrogram(app.AudioFilePlay(app.subInterval(1):...
-%    app.subInterval(2),i),app.wind,app.noverlap,app.F,app.Fs);
-
+    
 x = (app.audioSamples(app.subInterval(1):app.subInterval(2),row(i)) + ...
     app.audioSamples(app.subInterval(1):app.subInterval(2),row(i)+1))/2;
 window = app.Fs*app.window_size;
 noverlap = round(app.noverlap_size*window);
-[s{i},~,t{i}] = spectrogram(x,window,noverlap,app.F,app.Fs);
+s{i} = spectrogram(x,window,noverlap,app.F,app.Fs);
 
 s{i}= abs(s{i});
+s{i} = s{i}(50:end,:);
 
+% T = t{i};
+% t{i} = t{i}-T(1);
 
-%Here we should add the 10s that we are in to "t"
-%            t=t-t(1)+app.TS.Time(app.subInterval(1):app.subInterval(2));
-
-T = t{i};
-
-t{i} = t{i}-T(1);
-
-
-%f = 1+max(max(s))*[1,1];
 end
-imagesc(app.UIAxes,t{1},app.F,s{1})
-imagesc(app.UIAxes_2,t{2},app.F,s{2})
-imagesc(app.UIAxes_3,t{3},app.F,s{3})
-imagesc(app.UIAxes_4,t{4},app.F,s{4})
+time = app.TS.Time(app.subInterval(1):app.subInterval(2));
+imagesc(app.UIAxes,time,app.F,s{1})
+imagesc(app.UIAxes_2,time,app.F,s{2})
+imagesc(app.UIAxes_3,time,app.F,s{3})
+imagesc(app.UIAxes_4,time,app.F,s{4})
+app.UIAxes.YDir = 'normal'; app.UIAxes.XLim = [time(1),time(end)];
+app.UIAxes_2.YDir = 'normal'; app.UIAxes_2.XLim = [time(1),time(end)];
+app.UIAxes_3.YDir = 'normal'; app.UIAxes_3.XLim = [time(1),time(end)];
+app.UIAxes_4.YDir = 'normal'; app.UIAxes_4.XLim = [time(1),time(end)];
+
 end
