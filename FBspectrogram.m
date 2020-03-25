@@ -20,16 +20,17 @@ s{i} = s{i}(50:end,:);
 
 end
 
-time = app.TS.Time(app.subInterval(1):app.subInterval(2));
-time = app.convertToRealTime(time);
+curtime = app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate;
+time = curtime:1:(curtime+10);
+timestr = app.convertToRealTime(time);
 
 imagesc(app.UIAxes,time,app.F,s{1})
 imagesc(app.UIAxes_2,time,app.F,s{2})
 imagesc(app.UIAxes_3,time,app.F,s{3})
 imagesc(app.UIAxes_4,time,app.F,s{4})
-app.UIAxes.YDir = 'normal'; app.UIAxes.XLim = [time(1),time(end)]; xticks(time); xticklabels()
-app.UIAxes_2.YDir = 'normal'; app.UIAxes_2.XLim = [time(1),time(end)];
-app.UIAxes_3.YDir = 'normal'; app.UIAxes_3.XLim = [time(1),time(end)];
-app.UIAxes_4.YDir = 'normal'; app.UIAxes_4.XLim = [time(1),time(end)];
+app.UIAxes.YDir = 'normal'; app.UIAxes.XLim = [time(1),time(end)]; app.UIAxes.XTickLabel = timestr;
+app.UIAxes_2.YDir = 'normal'; app.UIAxes_2.XLim = [time(1),time(end)]; app.UIAxes_2.XTickLabel = timestr;
+app.UIAxes_3.YDir = 'normal'; app.UIAxes_3.XLim = [time(1),time(end)]; app.UIAxes_3.XTickLabel = timestr;
+app.UIAxes_4.YDir = 'normal'; app.UIAxes_4.XLim = [time(1),time(end)]; app.UIAxes_4.XTickLabel = timestr;
 
 end
