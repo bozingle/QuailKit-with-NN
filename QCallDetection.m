@@ -58,7 +58,7 @@ for i = 1:4
                 
                 call=(time(1)+(10/spec_len)*(call_candidates(min(rows))+locs-floor(temp_length/2)))';
                 Calls=[Calls;call];
-                call_locations=[call_locations;max(call_candidates(min(rows))-ceil(spec_seg_size/2),1)+locs'];
+                %call_locations=[call_locations;max(call_candidates(min(rows))-ceil(spec_seg_size/2),1)+locs'];
             end
         else
             spec_seg=app.Spectrograms{i}(100:end-100,max(call_candidates(1)-temp_length,1):min(call_candidates(1),spec_len));
@@ -76,13 +76,11 @@ for i = 1:4
             
             call=(time(1)+(10/spec_len)*(call_candidates(1)+locs-floor(temp_length/2)))';
             Calls=[Calls;call];
-            call_locations=[call_locations;max(call_candidates(1)-ceil(spec_seg_size/2),1)+locs'];
+            %call_locations=[call_locations;max(call_candidates(1)-ceil(spec_seg_size/2),1)+locs'];
         end
     end
     
-    pos{i} = [call_locations-temp_length repmat(25,length(call_locations)...
-        ,1) repmat(temp_length,length(call_locations),1) ...
-        repmat(spec_width-100,length(call_locations),1)];
+    pos{i} = [call 1000 call+0.5 2000];
     
 end
 %% Drawing Bounding Boxes
