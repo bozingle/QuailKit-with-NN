@@ -80,7 +80,8 @@ for i = 1:4
         end
     end
     
-    pos{i} = [call 1000 call+0.5 2000];
+    pos{i} = [Calls-0.75 1000*ones(length(Calls),1) ...
+        0.75*ones(length(Calls),1) 2000*ones(length(Calls),1)];
     
 end
 %% Drawing Bounding Boxes
