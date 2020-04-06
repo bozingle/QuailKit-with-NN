@@ -13,6 +13,7 @@ temp_length=size(template,2);
 %title('Template')
 %% Quail Call Detection
 for i = 1:4
+    Calls = [];
     spec_len=size(app.Spectrograms{i},2);
     spec_width=size(app.Spectrograms{i},1);
     
@@ -81,7 +82,7 @@ for i = 1:4
     end
     
     pos{i} = [Calls-0.75 1000*ones(length(Calls),1) ...
-        0.75*ones(length(Calls),1) 2000*ones(length(Calls),1)];
+        0.5*ones(length(Calls),1) 2000*ones(length(Calls),1)];
     
 end
 %% Drawing Bounding Boxes
