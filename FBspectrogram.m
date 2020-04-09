@@ -14,10 +14,6 @@ noverlap = round(app.noverlap_size*window);
 s{i} = spectrogram(x,window,noverlap,app.F,app.Fs);
 
 s{i}= abs(s{i});
-
-% T = t{i};
-% t{i} = t{i}-T(1);
-
 end
 
 curtime = app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate;
