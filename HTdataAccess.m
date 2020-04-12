@@ -97,9 +97,12 @@ function val = Read(app)
 %             Ws = 3000/Fn;
 %             raw = bandpass(raw,[Wp,Ws]);
             app.AudioFilePlay(1:size(raw,1),k) = (raw(:,1) + raw(:,2))/2;
-            %app.AudioSignal(1:size(raw,1),k) = zscore(raw(:,1)) + zscore(raw(:,2));
         end
-
+        
+        for rec = 1:4
+            app.Recordings{rec} = audioplayer(app.AudioFilePlay...
+                (app.subInterval(1):app.subInterval(2),rec),app.Fs);
+        end
         
     else
         app.audioSamples = NaN;
