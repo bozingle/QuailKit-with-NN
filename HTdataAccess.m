@@ -24,13 +24,8 @@ end
 %Returns TimeSeries of data from chosen directory.
 %If 4 audio files couldn't be found, this will return NaN.
 function val = Read(app)
-
     if isempty(app.micPaths)
         mics = dir(fullfile(app.dataPath,"Mics"));
-        % Attempt
-        % mics = struct2cell(mics)';
-        % mics = mics(:,1);
-
         %Quick and dirty for now.
         micPaths = [];
         for i = 1:length(mics)
@@ -43,11 +38,7 @@ function val = Read(app)
             end
         end
         app.micPaths = micPaths;
-    end
-    
-    if length(app.micPaths) >= 4
-        
-        if isempty(app.TS)
+        if length(app.micPaths) >= 4
             info=audioinfo(fullfile(app.dataPath,'Mics',app.micPaths(1).name));
             minSamples = info.TotalSamples;
             fs=info.SampleRate;
@@ -55,57 +46,67 @@ function val = Read(app)
                 info=audioinfo(fullfile(app.dataPath,'Mics',app.micPaths(k).name));
                 minSamples = min(minSamples,info.TotalSamples);
             end
-            
+
             app.Samples = minSamples;
             namespl = split(app.micPaths(1).name,["__","_","$","."]);
             app.Date = namespl(3)+" "+namespl(4);
             app.Date =datetime(app.Date,'InputFormat','yyyyMMdd HHmmss');
-            ts=timeseries(zeros(app.loadIntervalRate*fs,2));
-            app.TS =setuniformtime(ts,'StartTime',0,...
-                'Interval',1/fs);
-            app.TS.TimeInfo.StartDate=app.Date;
+
             app.Fs = fs;
-            
+
             app.curLoadInterval = 0;
             app.curSubInterval = 0;
-            
+
             app.initialLoadInterval = [1 app.Fs*app.loadIntervalRate];
             app.initialSubInterval = [1 app.Fs*app.loadSubIntervalRate];
-            
+
             if app.initialLoadInterval(2) <= app.Samples
                 app.loadInterval = app.initialLoadInterval;
             else
                 app.loadInterval = [1 app.audioSamples];
             end
             app.subInterval = app.initialSubInterval;
-            
+
             app.SubSamples = app.subInterval(2)*app.loadIntervalRate/app.loadSubIntervalRate;
-        else
-            app.TS=setuniformtime(app.TS,'StartTime',0,'Interval',1/app.Fs);
-            app.TS.Time = app.TS.Time+(app.curLoadInterval-1)*app.loadIntervalRate;
         end
-        
-        app.AudioFilePlay = [];
+    end
+
+    app.AudioFilePlay = [];
 %         app.AudioSignal = [];
-        for k=1:size(app.micPaths,2)
-            [raw,~]=audioread(fullfile(app.dataPath,'Mics',app.micPaths(k).name),app.loadInterval);
+    for k=1:size(app.micPaths,2)
+        [raw,~]=audioread(fullfile(app.dataPath,'Mics',app.micPaths(k).name),app.loadInterval);
+        if isempty(app.micpos) || size(app.micpos,1) < size(app.micPaths,2)
+            metfilename = string(split(app.micPaths(k).name,'_'));
+            metfilename = fullfile(app.dataPath,'Mics',metfilename(1)+"_A_Summary.txt");
+            micData = readtable(metfilename);
+            temp = []
+            if char(micData{1,4}) == 'N'
+                temp(1) = mean(micData{:,3});
+            else
+                temp(1) = - mean(micData{:,3});
+            end
+            if char(micData{1,6}) == 'E'
+                temp(2) =  mean(micData{:,5});
+            else
+                temp(2) = - mean(micData{:,5});
+            end
+            temp(3) = 0;
+            temp(4) =  mean(micData{:,9});
+            app.micpos = [app.micpos; temp];
+        end
 %             app.audioSamples(1:length(raw),2*k-1:2*k)= raw;
-            
+
 %            handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,handles.AudioChannel)); 
 %             Fn = app.Fs/2;
 %             Wp = 1000/Fn;
 %             Ws = 3000/Fn;
 %             raw = bandpass(raw,[Wp,Ws]);
-            app.AudioFilePlay(1:size(raw,1),k) = (raw(:,1) + raw(:,2))/2;
-        end
-        
-        for rec = 1:4
-            app.Recordings{rec} = audioplayer(app.AudioFilePlay...
-                (app.subInterval(1):app.subInterval(2),rec),app.Fs);
-        end
-        
-    else
-        app.audioSamples = NaN;
+        app.AudioFilePlay(1:size(raw,1),k) = (raw(:,1) + raw(:,2))/2;
+    end
+
+    for rec = 1:4
+        app.Recordings{rec} = audioplayer(app.AudioFilePlay...
+            (app.subInterval(1):app.subInterval(2),rec),app.Fs);
     end
 
     val = app;
