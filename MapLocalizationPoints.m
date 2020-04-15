@@ -11,6 +11,7 @@ function MapLocalizationPoints(parent, varargin)
     
     if mod(length(varargin),5) == 0
         gx = geoaxes('parent',parent);
+        hold on;
         Names = [];
         for i = 0:5:length(varargin)-1
             
@@ -23,7 +24,7 @@ function MapLocalizationPoints(parent, varargin)
                 geoplot(gx,Points(:,1),Points(:,2),LineSpec,'MarkerSize',Size,'MarkerFaceColor',FaceColor);
             end
         end
-        
+        hold off;
         geobasemap(gx, 'satellite');
         legend(gx,Names);
     else

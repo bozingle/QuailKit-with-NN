@@ -93,6 +93,7 @@ function val = Read(app)
             temp(3) = 0;
             temp(4) =  mean(micData{:,9});
             app.micpos = [app.micpos; temp];
+            app.metPaths = [app.metPaths metfilename];
         end
 %             app.audioSamples(1:length(raw),2*k-1:2*k)= raw;
 

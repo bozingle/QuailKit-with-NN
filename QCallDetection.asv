@@ -40,7 +40,6 @@ for i = 1:4
     if ~isempty(call_candidates)
         if length(call_candidates)>1
             [L,n]=bwlabel(squareform(pdist(call_candidates))<temp_length/2,4);
-            dec = 0;
             for k=1:n
                 [rows,~]=find(L==k);
                 rows=unique(rows);
@@ -59,9 +58,7 @@ for i = 1:4
                 
                 call=(time(1)+(10/spec_len)*(call_candidates(min(rows))+locs-floor(temp_length/2)))';
                 if ~isempty(call) && call ~= 0
-                    Calls(k-dec,i)= call;
-                else
-                    dec = dec + 1;
+                    Calls(k,i)= call;
                 end
                 %call_locations=[call_locations;max(call_candidates(min(rows))-ceil(spec_seg_size/2),1)+locs'];
             end
