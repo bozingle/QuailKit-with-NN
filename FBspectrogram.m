@@ -13,7 +13,8 @@ window = app.Fs*app.window_size;
 noverlap = round(app.noverlap_size*window);
 s{i} = spectrogram(x,window,noverlap,app.F,app.Fs);
 
-s{i}= abs(s{i});
+s{i}= mat2gray(abs(s{i}));
+
 end
 
 curtime = app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate;
