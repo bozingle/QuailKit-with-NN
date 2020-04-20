@@ -40,7 +40,9 @@ function S = Localization(app,matchedMatrix)
         
         f = min([B(:,1)'*N + meanMicLoc(1),B(:,2)'*N + meanMicLoc(2);...
             B(:,1)'*G + meanMicLoc(1),B(:,2)'*G + meanMicLoc(2)],[],1);
-        S = [S; f];
+        if isreal(f)
+            S = [S; f];
+        end
     end
     S = utm2ll(S(:,1),S(:,2), ones(size(S,1),1)*14);
 end
