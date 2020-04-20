@@ -105,10 +105,5 @@ function val = Read(app)
         app.AudioFilePlay(1:size(raw,1),k) = (raw(:,1) + raw(:,2))/2;
     end
 
-    for rec = 1:4
-        app.Recordings{rec} = audioplayer(app.AudioFilePlay...
-            (app.subInterval(1):app.subInterval(2),rec),app.Fs);
-    end
-
     val = app;
 end
