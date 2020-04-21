@@ -1,4 +1,5 @@
 function S = Localization(app,matchedMatrix)
+    matchedMatrix(find(matchedMatrix == 0)) = NaN;
     lagMatrix = getLagMatrix(matchedMatrix);
     
     S = [];
@@ -9,13 +10,15 @@ function S = Localization(app,matchedMatrix)
     
     c = 331.3*sqrt(1 + mean(app.micpos(:,4))/273.15);
     
-    A = zeros(67,3);
-    A(1:size(micPosUTM,1),1) = micPosUTM(:,1) - meanMicLoc(1);
-    A(1:size(micPosUTM,1),2) = micPosUTM(:,2) - meanMicLoc(2);
+    
     
     e = zeros(67,1);
     
     for i = 1:size(matchedMatrix,2)
+        A = zeros(67,3);
+        A(1:size(micPosUTM,1),1) = micPosUTM(:,1) - meanMicLoc(1);
+        A(1:size(micPosUTM,1),2) = micPosUTM(:,2) - meanMicLoc(2);
+        
         e(1:size(micPosUTM,1),1) = ~isnan(lagMatrix(:,i))';
 
         avgTime = sum(lagMatrix(:,i), 'omitnan')/64;
