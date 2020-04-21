@@ -116,18 +116,20 @@ CallC(find(CallC==0)) = [];
 CallD = Calls{4};
 CallD(find(CallD==0)) = [];
  %% Drawing Lines on Calls
-for row = 1:size(Calls{1},1)
-    line(app.UIAxes,Calls{1}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
-end
-for row = 1:size(Calls{2},1)
-    line(app.UIAxes_2,Calls{2}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
-end
-for row = 1:size(Calls{3},1)
-    line(app.UIAxes_3,Calls{3}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
-end
-for row = 1:size(Calls{4},1)
-    line(app.UIAxes_4,Calls{4}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
-end
+ if app.OffButton.Value == 1
+     for row = 1:size(Calls{1},1)
+         line(app.UIAxes,Calls{1}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
+     end
+     for row = 1:size(Calls{2},1)
+         line(app.UIAxes_2,Calls{2}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
+     end
+     for row = 1:size(Calls{3},1)
+         line(app.UIAxes_3,Calls{3}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
+     end
+     for row = 1:size(Calls{4},1)
+         line(app.UIAxes_4,Calls{4}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
+     end
+ end
 
 end
  %% Drawing Bounding Boxes
