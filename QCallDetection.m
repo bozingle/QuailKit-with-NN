@@ -116,7 +116,7 @@ CallC(find(CallC==0)) = [];
 CallD = Calls{4};
 CallD(find(CallD==0)) = [];
  %% Drawing Lines on Calls
- if app.OffButton.Value == 1
+ if app.OffButton.Value == 1 && strcmp(app.ModeSwitch.Value,"Online")
      for row = 1:size(Calls{1},1)
          line(app.UIAxes,Calls{1}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
      end
