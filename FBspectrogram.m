@@ -8,12 +8,20 @@ function s = FBspectrogram(app)
 
         %x = (app.audioSamples(app.subInterval(1):app.subInterval(2),column(i)) + ...
         %   app.audioSamples(app.subInterval(1):app.subInterval(2),column(i)+1))/2;
-        x= app.AudioFilePlay(app.subInterval(1):app.subInterval(2),i);
+        try
+            x = app.AudioFilePlay(app.subInterval(1):app.subInterval(2),i);
+        catch e
+            x = app.AudioFilePlay(app.subInterval(1):end,i);
+        end
         window = app.Fs*app.window_size;
         noverlap = round(app.noverlap_size*window);
-        s{i} = spectrogram(x,window,noverlap,app.F,app.Fs);
+        if window <= length(x)
+            s{i} = spectrogram(x,window,noverlap,app.F,app.Fs);
 
-        s{i}= mat2gray(abs(s{i}));
+            s{i}= mat2gray(abs(s{i}));
+        else
+            s{i} = [];
+        end
 
     end
     

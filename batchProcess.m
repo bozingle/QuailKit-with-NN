@@ -1,8 +1,9 @@
 function batchProcess(app)
+    %% Batch Process
     matchedMatrix = [];
     CallsA = [];CallsB = [];CallsC = [];CallsD = [];
     app.curLoadInterval = 0; app.curSubInterval = 0;
-    app.Spectrograms = FBspectrogram(app);
+    app.UpdateAudio(0);
     while true
         [CallA,CallB,CallC,CallD] = QCallDetection(app);
         CallsA = [CallsA; CallA];CallsB = [CallsB; CallB];CallsC = [CallsC; CallC];CallsD = [CallsD; CallD];
@@ -19,4 +20,19 @@ function batchProcess(app)
         end
     end
     localizations = Localization(app, matchedMatrix);
+    
+    %% Record data
+    micNames = [];
+    for i = 1:size(app.micPaths,2)
+        temp = split(string(app.micPaths(i).name), '_');
+        micNames = [micNames temp(i)];
+    end
+    
+    resultfile = fullfile(app.dataPath,"results.xlsx");
+    xlswrite(resultfile,CallsA,micNames{1});
+    xlswrite(resultfile,CallsB,micNames{2});
+    xlswrite(resultfile,CallsC,micNames{3});
+    xlswrite(resultfile,CallsD,micNames{4});
+    xlswrite(resultfile,matchedMatrix',"matchedMatrix");
+    xlswrite(resultfile,localizations,"Localizations");
 end
