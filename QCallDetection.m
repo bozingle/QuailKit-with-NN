@@ -1,6 +1,6 @@
 %Algorithm written by Golnaz Moallem - Modified by Farshad Bolouri to
 %adjust to the software
-function [CallA,CallB,CallC,CallD] = QCallDetection(app)
+function [CallA,CallB,CallC,CallD,Calls] = QCallDetection(app)
 Calls = cell(1,4);
 pos = cell(1,4);
 curtime = app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate;

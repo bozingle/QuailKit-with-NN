@@ -1,5 +1,5 @@
 % Algorithm developed by Farshad Bolouri
-function AnnotatedCalls = annotationsBBox(app)
+function [AnnotatedCalls,pos] = annotationsBBox(app)
 TimeIntervals = cell(1,4);
 pos = cell(1,4);
 Calls = cell(1,4);
@@ -23,31 +23,34 @@ for i = 3 : 6
     
     if ~isempty(Calls{i-2})
         pos{i-2} = [Calls{i-2}(:,1) 1200*ones(length(Calls{i-2}(:,1)),1)...
-            Calls{i-2}(:,2) 1750*ones(length(Calls{i-2}(:,1)),1)];
+            Calls{i-2}(:,2)-Calls{i-2}(:,1) ...
+            1750*ones(length(Calls{i-2}(:,1)),1)];
     end
 end
 
 AnnotatedCalls = Calls;
 
 %% Drawing Bounding Boxes
-if ~isempty(pos{1})
-    for row = 1:size(pos{1},1)
-        rectangle(app.UIAxes,'Position',pos{1}(row,:),'EdgeColor','green')
+if app.OffButton_2.Value == 1 && strcmp(app.ModeSwitch.Value,"Online")
+    if ~isempty(pos{1})
+        for row = 1:size(pos{1},1)
+            rectangle(app.UIAxes,'Position',pos{1}(row,:),'EdgeColor','green')
+        end
     end
-end
-if ~isempty(pos{2})
-    for row = 1:size(pos{2},1)
-        rectangle(app.UIAxes_2,'Position',pos{2}(row,:),'EdgeColor','green')
+    if ~isempty(pos{2})
+        for row = 1:size(pos{2},1)
+            rectangle(app.UIAxes_2,'Position',pos{2}(row,:),'EdgeColor','green')
+        end
     end
-end
-if ~isempty(pos{3})
-    for row = 1:size(pos{3},1)
-        rectangle(app.UIAxes_3,'Position',pos{3}(row,:),'EdgeColor','green')
+    if ~isempty(pos{3})
+        for row = 1:size(pos{3},1)
+            rectangle(app.UIAxes_3,'Position',pos{3}(row,:),'EdgeColor','green')
+        end
     end
-end
-if ~isempty(pos{4})
-    for row = 1:size(pos{4},1)
-        rectangle(app.UIAxes_4,'Position',pos{4}(row,:),'EdgeColor','green')
+    if ~isempty(pos{4})
+        for row = 1:size(pos{4},1)
+            rectangle(app.UIAxes_4,'Position',pos{4}(row,:),'EdgeColor','green')
+        end
     end
 end
 
