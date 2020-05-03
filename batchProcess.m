@@ -1,5 +1,6 @@
 function batchProcess(app)
     %% Batch Process
+    tic
     matchedMatrix = [];
     CallsA = [];CallsB = [];CallsC = [];CallsD = [];
     app.curLoadInterval = 0; app.curSubInterval = 0;
@@ -20,12 +21,12 @@ function batchProcess(app)
         end
     end
     localizations = Localization(app, matchedMatrix);
-    
+    toc
     %% Record data
     micNames = [];
     for i = 1:size(app.micPaths,2)
         temp = split(string(app.micPaths(i).name), '_');
-        micNames = [micNames temp(i)];
+        micNames = [micNames temp(1)];
     end
     
     resultfile = fullfile(app.dataPath,"results.xlsx");
