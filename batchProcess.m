@@ -15,24 +15,41 @@ function batchProcess(app)
         if totalSeconds <= app.Samples/app.Fs && totalSeconds >= 0
             app.UpdateAudio(totalSeconds);
             app.NorecordingsloadedyetLabel.Text = "Batch Processing("+string(num2str(floor((totalSeconds*app.Fs/app.Samples)*10000)/100))+"/100%)";
+            drawnow;
         else
             break;
         end
     end
     localizations = Localization(app, matchedMatrix);
-    
+
     %% Record data
     micNames = [];
     for i = 1:size(app.micPaths,2)
         temp = split(string(app.micPaths(i).name), '_');
-        micNames = [micNames temp(i)];
+        micNames = [micNames temp(1)];
     end
     
     resultfile = fullfile(app.dataPath,"results.xlsx");
-    xlswrite(resultfile,CallsA,micNames{1});
-    xlswrite(resultfile,CallsB,micNames{2});
-    xlswrite(resultfile,CallsC,micNames{3});
-    xlswrite(resultfile,CallsD,micNames{4});
-    xlswrite(resultfile,matchedMatrix',"matchedMatrix");
-    xlswrite(resultfile,localizations,"Localizations");
+    T = table(CallsA);
+    T.Properties.VariableNames = "Time Detected";
+    writetable(T,resultfile,"Sheet",micNames{1});
+    T = table(CallsB);
+    T.Properties.VariableNames = "Time Detected";
+    writetable(T,resultfile,"Sheet",micNames{2});
+
+    T = table(CallsC);
+    T.Properties.VariableNames = "Time Detected";
+    writetable(T,resultfile,"Sheet",micNames{3});
+
+    T = table(CallsD);
+    T.Properties.VariableNames = "Time Detected";
+    writetable(T,resultfile,"Sheet",micNames{4});
+    
+    T = table((1:size(matchedMatrix,2))',matchedMatrix(1,:)',matchedMatrix(2,:)',matchedMatrix(3,:)',matchedMatrix(4,:)');
+    T.Properties.VariableNames = ["Number Matched Call" micNames];
+    writetable(T,resultfile,"Sheet","matchedMatrix");
+    
+    T = table(localizations(:,1),localizations(:,2),localizations(:,3));
+    T.Properties.VariableNames = ["Number Matched Call","Latitude", "Longitude"];
+    writetable(T,resultfile,"Sheet","Localizations");
 end
