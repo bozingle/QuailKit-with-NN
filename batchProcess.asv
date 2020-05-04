@@ -46,7 +46,7 @@ function batchProcess(app)
     T.Properties.VariableNames = "Time Detected";
     writetable(T,resultfile,"Sheet",micNames{4});
     
-    T = table(matchedMatrix(1,:)',matchedMatrix(2,:)',matchedMatrix(3,:)',matchedMatrix(4,:)');
+    T = table(matchedMatrix(:,1),matchedMatrix(:,2),matchedMatrix(:,3),matchedMatrix(:,4));
     T.Properties.VariableNames = micNames;
     writetable(T,resultfile,"Sheet","matchedMatrix");
     
