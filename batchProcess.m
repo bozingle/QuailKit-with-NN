@@ -1,6 +1,5 @@
 function batchProcess(app)
     %% Batch Process
-    tic
     matchedMatrix = [];
     CallsA = [];CallsB = [];CallsC = [];CallsD = [];
     app.curLoadInterval = 0; app.curSubInterval = 0;
@@ -22,7 +21,7 @@ function batchProcess(app)
         end
     end
     localizations = Localization(app, matchedMatrix);
-    toc
+
     %% Record data
     micNames = [];
     for i = 1:size(app.micPaths,2)
@@ -46,11 +45,11 @@ function batchProcess(app)
     T.Properties.VariableNames = "Time Detected";
     writetable(T,resultfile,"Sheet",micNames{4});
     
-    T = table(matchedMatrix(1,:)',matchedMatrix(2,:)',matchedMatrix(3,:)',matchedMatrix(4,:)');
-    T.Properties.VariableNames = micNames;
+    T = table((1:size(matchedMatrix,2))',matchedMatrix(1,:)',matchedMatrix(2,:)',matchedMatrix(3,:)',matchedMatrix(4,:)');
+    T.Properties.VariableNames = ["Number Matched Call" micNames];
     writetable(T,resultfile,"Sheet","matchedMatrix");
     
-    T = table(localizations(:,1),localizations(:,2));
-    T.Properties.VariableNames = ["Latitude", "Longitude"];
+    T = table(localizations(:,1),localizations(:,2),localizations(:,3));
+    T.Properties.VariableNames = ["Number Matched Call","Latitude", "Longitude"];
     writetable(T,resultfile,"Sheet","Localizations");
 end

@@ -13,7 +13,7 @@ function S = Localization(app,matchedMatrix)
     
     
     e = zeros(67,1);
-    
+    numLoc = 1;
     for i = 1:size(matchedMatrix,2)
         A = zeros(67,3);
         A(1:size(micPosUTM,1),1) = micPosUTM(:,1) - meanMicLoc(1);
@@ -44,10 +44,11 @@ function S = Localization(app,matchedMatrix)
         f = min([B(:,1)'*N + meanMicLoc(1),B(:,2)'*N + meanMicLoc(2);...
             B(:,1)'*G + meanMicLoc(1),B(:,2)'*G + meanMicLoc(2)],[],1);
         if isreal(f)
-            S = [S; f];
+            S = [S;numLoc f];
         end
+        numLoc = numLoc + 1;
     end
-    S = utm2ll(S(:,1),S(:,2), ones(size(S,1),1)*14);
+    S(:,2:3) = utm2ll(S(:,2),S(:,3), ones(size(S,1),1)*14);
 end
 
 function lagMatrix = getLagMatrix(matchedMatrix)
