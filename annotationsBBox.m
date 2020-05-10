@@ -1,5 +1,5 @@
 % Algorithm developed by Farshad Bolouri
-function [AnnotatedCalls,pos] = annotationsBBox(app)
+function [AnnotatedCalls,pos,TimeIntervals] = annotationsBBox(app)
 TimeIntervals = cell(1,4);
 pos = cell(1,4);
 Calls = cell(1,4);
@@ -7,28 +7,33 @@ AnnotatedCalls = cell(1,4);
 
 GT = dir(fullfile(app.dataPath,"GT"));
 % Calcualte the current time interval (Online Mode)
-curtime = app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate;
-time = curtime:1:(curtime+10);
-
+if strcmp(app.ModeSwitch.Value,"Online")
+    curtime = app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate;
+    time = curtime:1:(curtime+10);
+end
 %% Calculate the Positions
 for i = 3 : 6
     Annotations = readmatrix(fullfile(app.dataPath,"GT",GT(i).name));
     TimeIntervals{i-2} = Annotations(:,5:end);
-    k =1;
-    for j = 1 : size(TimeIntervals{i-2},1)
-        if (TimeIntervals{i-2}(j,1) > time(1)) && (TimeIntervals{i-2}(j,1) < time(end))
-            Calls{i-2}(k,:) = TimeIntervals{i-2}(j,:);
-            k = k+1;
+    
+    if strcmp(app.ModeSwitch.Value,"Online")
+        k =1;
+        for j = 1 : size(TimeIntervals{i-2},1)
+            if (TimeIntervals{i-2}(j,1) > time(1)) && (TimeIntervals{i-2}(j,1) < time(end))
+                Calls{i-2}(k,:) = TimeIntervals{i-2}(j,:);
+                k = k+1;
+            end
         end
+        
+        if ~isempty(Calls{i-2})
+            pos{i-2} = [Calls{i-2}(:,1) Calls{i-2}(:,3)...
+                Calls{i-2}(:,2)-Calls{i-2}(:,1) ...
+                Calls{i-2}(:,4)-Calls{i-2}(:,3)];
+        end
+        
+        AnnotatedCalls{i-2} = Calls{i-2}(:,1:2);
     end
     
-    if ~isempty(Calls{i-2})
-        pos{i-2} = [Calls{i-2}(:,1) Calls{i-2}(:,3)...
-            Calls{i-2}(:,2)-Calls{i-2}(:,1) ...
-            Calls{i-2}(:,4)-Calls{i-2}(:,3)];
-    end
-    
-    AnnotatedCalls{i-2} = Calls{i-2}(:,1:2);
 end
 
 %% Drawing Bounding Boxes

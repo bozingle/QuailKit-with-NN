@@ -5,7 +5,7 @@ function batchProcess(app)
     app.curLoadInterval = 0; app.curSubInterval = 0;
     app.UpdateAudio(0);
     while true
-        [CallA,CallB,CallC,CallD] = QCallDetection(app);
+        [CallA,CallB,CallC,CallD,Calls] = QCallDetection(app);
         CallsA = [CallsA; CallA];CallsB = [CallsB; CallB];CallsC = [CallsC; CallC];CallsD = [CallsD; CallD];
         if (~isempty(CallA) + ~isempty(CallB) + ~isempty(CallC) + ~isempty(CallD))/4  >= 3/4
             matchedMatrix = [matchedMatrix GM_MatchCalls(CallA,CallB,CallC,CallD,GM_EstimateMaxTimeLag(readtable(app.metPaths(1)),...
@@ -52,4 +52,10 @@ function batchProcess(app)
     T = table(localizations(:,1),localizations(:,2),localizations(:,3));
     T.Properties.VariableNames = ["Number Matched Call","Latitude", "Longitude"];
     writetable(T,resultfile,"Sheet","Localizations");
+    
+    %% Confusion Matrix
+    [~,~,Annotated] = annotationsBBox(app);
+    [TP,FP,FN] = confusionMat(Annotated,Calls);
+    T = table(TP',FP',FN','VariableNames',{'TP','FP','FN'});
+    writetable(T,resultfile,"Sheet","ConfusionMatrix");
 end
