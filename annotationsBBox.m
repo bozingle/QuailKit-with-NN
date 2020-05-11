@@ -14,7 +14,7 @@ end
 %% Calculate the Positions
 for i = 3 : 6
     Annotations = readmatrix(fullfile(app.dataPath,"GT",GT(i).name));
-    TimeIntervals{i-2} = Annotations(:,5:end);
+    TimeIntervals{i-2} = Annotations(:,5:8);
     
     if strcmp(app.ModeSwitch.Value,"Online")
         k =1;
@@ -29,9 +29,11 @@ for i = 3 : 6
             pos{i-2} = [Calls{i-2}(:,1) Calls{i-2}(:,3)...
                 Calls{i-2}(:,2)-Calls{i-2}(:,1) ...
                 Calls{i-2}(:,4)-Calls{i-2}(:,3)];
+            
+            AnnotatedCalls{i-2} = Calls{i-2}(:,1:2);
         end
         
-        AnnotatedCalls{i-2} = Calls{i-2}(:,1:2);
+        
     end
     
 end
