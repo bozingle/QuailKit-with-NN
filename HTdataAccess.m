@@ -67,7 +67,7 @@ function val = Read(app)
             end
             app.subInterval = app.initialSubInterval;
 
-            app.SubSamples = app.subInterval(2)*app.loadIntervalRate/app.loadSubIntervalRate;
+            app.SubSamples = app.Fs*app.loadIntervalRate;
         end
     end
 

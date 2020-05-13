@@ -4,7 +4,6 @@ function batchProcess(app)
     CallsA = [];CallsB = [];CallsC = [];CallsD = [];
     app.curLoadInterval = 0; app.curSubInterval = 0;
     app.UpdateAudio(0);
-    
     while true
         [CallA,CallB,CallC,CallD,Calls] = QCallDetection(app);
         CallsA = [CallsA; CallA];CallsB = [CallsB; CallB];CallsC = [CallsC; CallC];CallsD = [CallsD; CallD];
@@ -13,13 +12,15 @@ function batchProcess(app)
                                readtable(app.metPaths(2)),readtable(app.metPaths(3)),readtable(app.metPaths(4))))];
         end
         totalSeconds = (app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate) + 10;
-        if totalSeconds < app.Samples/app.Fs && totalSeconds >= 0
-            app.UpdateAudio(totalSeconds);
-            app.NorecordingsloadedyetLabel.Text = "Batch Processing("+string(num2str(floor((totalSeconds*app.Fs/app.Samples)*10000)/100))+"/100%)";
-            drawnow;
+        
+            try
+                app.UpdateAudio(totalSeconds);
+                app.NorecordingsloadedyetLabel.Text = "Batch Processing("+string(num2str(floor((totalSeconds*app.Fs/app.Samples)*10000)/100))+"/100%)";
+                drawnow;
+            catch e
+                disp("error");
+            end
         else
-            app.NorecordingsloadedyetLabel.Text = "Batch Processing("+string(num2str(floor((totalSeconds*app.Fs/app.Samples)*10000)/100))+"/100%)";
-            drawnow;
             break;
         end
     end
