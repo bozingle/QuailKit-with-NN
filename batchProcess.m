@@ -6,7 +6,7 @@ function batchProcess(app)
     app.UpdateAudio(0);
     
     while true
-        [CallA,CallB,CallC,CallD,Calls] = QCallDetection(app);
+        [CallA,CallB,CallC,CallD] = QCallDetection(app);
         CallsA = [CallsA; CallA];CallsB = [CallsB; CallB];CallsC = [CallsC; CallC];CallsD = [CallsD; CallD];
         if (~isempty(CallA) + ~isempty(CallB) + ~isempty(CallC) + ~isempty(CallD))/4  >= 3/4
             matchedMatrix = [matchedMatrix GM_MatchCalls(CallA,CallB,CallC,CallD,GM_EstimateMaxTimeLag(readtable(app.metPaths(1)),...
@@ -58,7 +58,9 @@ function batchProcess(app)
     
     %% Confusion Matrix
     [~,~,Annotated] = annotationsBBox(app);
-    [TP,FP,FN] = confusionMat(Annotated,Calls);
-    T = table(TP',FP',FN','VariableNames',{'TP','FP','FN'});
+    [TP,FP,FN] = confusionMat(Annotated,{CallsA,CallsB,CallsC,CallsD});
+    T = table({app.micNames(1);app.micNames(2);app.micNames(3);...
+        app.micNames(4)},TP',FP',FN','VariableNames',{'Microphones',...
+        'TP','FP','FN'});
     writetable(T,resultfile,"Sheet","ConfusionMatrix");
 end
