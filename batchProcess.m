@@ -5,12 +5,12 @@ function batchProcess(app)
     app.curLoadInterval = 0; app.curSubInterval = 0;
     app.UpdateAudio(0);
     
-    while true
+    while true && strcmp(app.ModeSwitch.Value,"Offline")
         [CallA,CallB,CallC,CallD] = QCallDetection(app);
         CallsA = [CallsA; CallA];CallsB = [CallsB; CallB];CallsC = [CallsC; CallC];CallsD = [CallsD; CallD];
         if (~isempty(CallA) + ~isempty(CallB) + ~isempty(CallC) + ~isempty(CallD))/4  >= 3/4
             matchedMatrix = [matchedMatrix GM_MatchCalls(CallA,CallB,CallC,CallD,GM_EstimateMaxTimeLag(readtable(app.metPaths(1)),...
-                               readtable(app.metPaths(2)),readtable(app.metPaths(3)),readtable(app.metPaths(4))))];
+                readtable(app.metPaths(2)),readtable(app.metPaths(3)),readtable(app.metPaths(4))))];
         end
         totalSeconds = (app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate) + 10;
         if totalSeconds < app.Samples/app.Fs && totalSeconds >= 0
@@ -23,44 +23,43 @@ function batchProcess(app)
             break;
         end
     end
-    localizations = Localization(app, matchedMatrix);
-
-    %% Record data
-    micNames = [];
-    for i = 1:size(app.micPaths,2)
-        temp = split(string(app.micPaths(i).name), '_');
-        micNames = [micNames temp(1)];
+    
+    if strcmp(app.ModeSwitch.Value,"Offline")
+        localizations = Localization(app, matchedMatrix);
     end
-    
-    resultfile = fullfile(app.dataPath,"results.xlsx");
-    T = table(CallsA);
-    T.Properties.VariableNames = "Time Detected";
-    writetable(T,resultfile,"Sheet",micNames{1});
-    T = table(CallsB);
-    T.Properties.VariableNames = "Time Detected";
-    writetable(T,resultfile,"Sheet",micNames{2});
-
-    T = table(CallsC);
-    T.Properties.VariableNames = "Time Detected";
-    writetable(T,resultfile,"Sheet",micNames{3});
-
-    T = table(CallsD);
-    T.Properties.VariableNames = "Time Detected";
-    writetable(T,resultfile,"Sheet",micNames{4});
-    
-    T = table((1:size(matchedMatrix,2))',matchedMatrix(1,:)',matchedMatrix(2,:)',matchedMatrix(3,:)',matchedMatrix(4,:)');
-    T.Properties.VariableNames = ["Number Matched Call" micNames];
-    writetable(T,resultfile,"Sheet","matchedMatrix");
-    
-    T = table(localizations(:,1),localizations(:,2),localizations(:,3));
-    T.Properties.VariableNames = ["Number Matched Call","Latitude", "Longitude"];
-    writetable(T,resultfile,"Sheet","Localizations");
-    
-    %% Confusion Matrix
-    [~,~,Annotated] = annotationsBBox(app);
-    [TP,FP,FN] = confusionMat(Annotated,{CallsA,CallsB,CallsC,CallsD});
-    T = table({app.micNames(1);app.micNames(2);app.micNames(3);...
-        app.micNames(4)},TP',FP',FN','VariableNames',{'Microphones',...
-        'TP','FP','FN'});
-    writetable(T,resultfile,"Sheet","ConfusionMatrix");
+    %% Record data   
+    if strcmp(app.ModeSwitch.Value,"Offline")
+        resultfile = fullfile(app.dataPath,"results.xlsx");
+        T = table(CallsA);
+        T.Properties.VariableNames = "Time Detected";
+        writetable(T,resultfile,"Sheet",app.micNames(1));
+        T = table(CallsB);
+        T.Properties.VariableNames = "Time Detected";
+        writetable(T,resultfile,"Sheet",app.micNames(2));
+        
+        T = table(CallsC);
+        T.Properties.VariableNames = "Time Detected";
+        writetable(T,resultfile,"Sheet",app.micNames(3));
+        
+        T = table(CallsD);
+        T.Properties.VariableNames = "Time Detected";
+        writetable(T,resultfile,"Sheet",app.micNames(4));
+        
+        T = table((1:size(matchedMatrix,2))',matchedMatrix(1,:)',matchedMatrix(2,:)',matchedMatrix(3,:)',matchedMatrix(4,:)');
+        T.Properties.VariableNames = ["Number Matched Call" {app.micNames(1);app.micNames(2);app.micNames(3);...
+            app.micNames(4)}'];
+        writetable(T,resultfile,"Sheet","matchedMatrix");
+        
+        T = table(localizations(:,1),localizations(:,2),localizations(:,3));
+        T.Properties.VariableNames = ["Number Matched Call","Latitude", "Longitude"];
+        writetable(T,resultfile,"Sheet","Localizations");
+        
+        %% Confusion Matrix
+        [~,~,Annotated] = annotationsBBox(app);
+        [TP,FP,FN] = confusionMat(Annotated,{CallsA,CallsB,CallsC,CallsD});
+        T = table({app.micNames(1);app.micNames(2);app.micNames(3);...
+            app.micNames(4)},TP',FP',FN','VariableNames',{'Microphones',...
+            'TP','FP','FN'});
+        writetable(T,resultfile,"Sheet","ConfusionMatrix");
+    end
 end
