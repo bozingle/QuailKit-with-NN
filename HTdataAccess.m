@@ -74,35 +74,39 @@ function val = Read(app)
     app.AudioFilePlay = [];
 %         app.AudioSignal = [];
     for k=1:size(app.micPaths,2)
-        [raw,~]=audioread(fullfile(app.dataPath,'Mics',app.micPaths(k).name),app.loadInterval);
-        if isempty(app.micpos) || size(app.micpos,1) < size(app.micPaths,2)
-            metfilename = string(split(app.micPaths(k).name,'_'));
-            metfilename = fullfile(app.dataPath,'Mics',metfilename(1)+"_A_Summary.txt");
-            micData = readtable(metfilename);
-            temp = []
-            if char(micData{1,4}) == 'N'
-                temp(1) = mean(micData{:,3});
-            else
-                temp(1) = - mean(micData{:,3});
+        try
+            [raw,~]=audioread(fullfile(app.dataPath,'Mics',app.micPaths(k).name),app.loadInterval);
+            if isempty(app.micpos) || size(app.micpos,1) < size(app.micPaths,2)
+                metfilename = string(split(app.micPaths(k).name,'_'));
+                metfilename = fullfile(app.dataPath,'Mics',metfilename(1)+"_A_Summary.txt");
+                micData = readtable(metfilename);
+                temp = []
+                if char(micData{1,4}) == 'N'
+                    temp(1) = mean(micData{:,3});
+                else
+                    temp(1) = - mean(micData{:,3});
+                end
+                if char(micData{1,6}) == 'E'
+                    temp(2) =  mean(micData{:,5});
+                else
+                    temp(2) = - mean(micData{:,5});
+                end
+                temp(3) = 0;
+                temp(4) =  mean(micData{:,9});
+                app.micpos = [app.micpos; temp];
+                app.metPaths = [app.metPaths metfilename];
             end
-            if char(micData{1,6}) == 'E'
-                temp(2) =  mean(micData{:,5});
-            else
-                temp(2) = - mean(micData{:,5});
-            end
-            temp(3) = 0;
-            temp(4) =  mean(micData{:,9});
-            app.micpos = [app.micpos; temp];
-            app.metPaths = [app.metPaths metfilename];
-        end
-%             app.audioSamples(1:length(raw),2*k-1:2*k)= raw;
+    %             app.audioSamples(1:length(raw),2*k-1:2*k)= raw;
 
-%            handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,handles.AudioChannel)); 
-%             Fn = app.Fs/2;
-%             Wp = 1000/Fn;
-%             Ws = 3000/Fn;
-%             raw = bandpass(raw,[Wp,Ws]);
-        app.AudioFilePlay(1:size(raw,1),k) = (raw(:,1) + raw(:,2))/2;
+    %            handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,handles.AudioChannel)); 
+    %             Fn = app.Fs/2;
+    %             Wp = 1000/Fn;
+    %             Ws = 3000/Fn;
+    %             raw = bandpass(raw,[Wp,Ws]);
+            app.AudioFilePlay(1:size(raw,1),k) = (raw(:,1) + raw(:,2))/2;
+        catch
+            p = 1;
+        end
     end
 
     val = app;
