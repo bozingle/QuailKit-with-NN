@@ -44,10 +44,10 @@ function S = Localization(app,matchedMatrix)
         BTN = B'*N;
         BTG = B'*G;
         
-        solsMat = [BTN(1) + meanMicLoc(1),BTN(2) + meanMicLoc(2);...
-            BTG(1) + meanMicLoc(1),BTG(2) + meanMicLoc(2)];
+        solsMat = [BTN(1) + meanMicLoc(1),BTN(2)'*N + meanMicLoc(2);...
+            BTG(1)'*G + meanMicLoc(1),BTG(2)'*G + meanMicLoc(2)];
         
-        rms1 = (A*BTN-N).^2;
+        rms1 = (A*BTN-N)^2;
         rms1(find(e == 0)) = [];
         rms2 = (A*BTG - G).^2;
         rms2(find(e == 0)) = [];
