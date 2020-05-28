@@ -74,7 +74,6 @@ function val = Read(app)
     app.AudioFilePlay = [];
 %         app.AudioSignal = [];
     for k=1:size(app.micPaths,2)
-        try
             [raw,~]=audioread(fullfile(app.dataPath,'Mics',app.micPaths(k).name),app.loadInterval);
             if isempty(app.micpos) || size(app.micpos,1) < size(app.micPaths,2)
                 metfilename = string(split(app.micPaths(k).name,'_'));
@@ -104,9 +103,7 @@ function val = Read(app)
     %             Ws = 3000/Fn;
     %             raw = bandpass(raw,[Wp,Ws]);
             app.AudioFilePlay(1:size(raw,1),k) = (raw(:,1) + raw(:,2))/2;
-        catch
-            p = 1;
-        end
+
     end
 
     val = app;
