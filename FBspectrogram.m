@@ -2,8 +2,6 @@ function s = FBspectrogram(app)
 
     s = cell(1,4);% t= cell(1,4);
     %column= [1,3,5,7];
-
-
     for i = 1:size(app.AudioFilePlay,2)
 
         %x = (app.audioSamples(app.subInterval(1):app.subInterval(2),column(i)) + ...
@@ -24,7 +22,6 @@ function s = FBspectrogram(app)
         end
 
     end
-    
     if strcmp(app.ModeSwitch.Value,"Online")
         curtime = app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate;
         time = curtime:1:(curtime+10);
