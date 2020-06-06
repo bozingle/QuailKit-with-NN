@@ -6,7 +6,12 @@ pos = cell(1,4);
 curtime = app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate;
 time = curtime:1:(curtime+10);
 %% Template Reading
-template=mat2gray(double(imread('template_synthetic.jpg')));
+if isempty(app.template)
+    template=mat2gray(double(imread('template_combined_real_bird_2.jpg')));
+else
+    template = app.template;
+end
+
 temp_width=size(template,1);
 temp_length=size(template,2);
 spec_duration = 10;
