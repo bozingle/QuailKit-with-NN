@@ -6,10 +6,22 @@ pos = cell(1,4);
 curtime = app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate;
 time = curtime:1:(curtime+10);
 %% Template Reading
-if isempty(app.template)
+value = app.QuailCallTemplateDropDown.Value;
+
+if isempty(app.template) || strcmp(value,"Default Real Bird")
     template=mat2gray(double(imread('template_combined_real_bird_2.jpg')));
 else
     template = app.template;
+end
+
+if strcmp(value,"Default Real Bird") || strcmp(value,"Import Real Bird")
+    ceil_x = 30;
+    MinProm_x = 0.25;
+    temp_length_x = 0.5;
+else
+    ceil_x = 10;
+    MinProm_x = 0.5;
+    temp_length_x = 2/3;
 end
 
 temp_width=size(template,1);
@@ -25,21 +37,26 @@ for i = 1:4
         spec_len=size(Ispec,2);
         spec_width=size(Ispec,1);
         %     figure();imshow(Ispec)
-
-        band=round((spec_width-temp_width)/3);
-        spec_seg_size=ceil(spec_len/30);
+        if strcmp(value,"Default Real Bird") || strcmp(value,"Import Real Bird")
+            band=round((spec_width-temp_width)/3);
+            spec_seg_x= band:size(Ispec,1)-band;
+        else
+            spec_seg_x= 1:size(Ispec,1);
+        end
+        
+        spec_seg_size=ceil(spec_len/ceil_x);
 
         call_candidates=[];
         %call_locations=[];
         no_seg=ceil(spec_len/spec_seg_size)*2-1;
         for s=1:no_seg
-            spec_seg=Ispec(band:end-band,(s-1)*ceil(spec_seg_size/2)+1:min((s-1)*ceil(spec_seg_size/2)+1+spec_seg_size,spec_len));
+            spec_seg=Ispec(spec_seg_x,(s-1)*ceil(spec_seg_size/2)+1:min((s-1)*ceil(spec_seg_size/2)+1+spec_seg_size,spec_len));
 
             cc=xcorr2(spec_seg,template);
             cc_signal=mat2gray(max(cc));
             cc_signal=cc_signal(round(temp_length/2)-1:end-round(temp_length/2));
 
-            TF = islocalmax(cc_signal,'MinProminence',0.25,'ProminenceWindow',temp_length/2);
+            TF = islocalmax(cc_signal,'MinProminence',MinProm_x,'ProminenceWindow',temp_length/2);
             locs=find(TF);
             call=(((s-1)*ceil(spec_seg_size/2)+1)+locs)';
             call_candidates=[call_candidates;call];
@@ -51,18 +68,18 @@ for i = 1:4
         end
         if ~isempty(call_candidates)
             if length(call_candidates)>1
-                [L,n]=bwlabel(squareform(pdist(call_candidates))<temp_length/2,4);
+                [L,n]=bwlabel(squareform(pdist(call_candidates))<temp_length*temp_length_x,4);
                 for k=1:n
                     [rows,~]=find(L==k);
                     rows=unique(rows);
-                    spec_seg=Ispec(band:end-band,max(call_candidates(min(rows))-...
+                    spec_seg=Ispec(spec_seg_x,max(call_candidates(min(rows))-...
                         round(temp_length/2),1):min(call_candidates(min(rows))+round(temp_length/2),spec_len));
 
                     cc=xcorr2(spec_seg,template);
                     cc_signal=mat2gray(max(cc));
                     cc_signal=cc_signal(round(temp_length/2)-1:end-round(temp_length/2));
 
-                    TF = islocalmax(cc_signal,'MinProminence',0.25,'ProminenceWindow',temp_length/2);
+                    TF = islocalmax(cc_signal,'MinProminence',MinProm_x,'ProminenceWindow',temp_length/2);
                     location=find(TF);
 
                     if call_candidates(min(rows)) <round(temp_length/2)
@@ -81,14 +98,14 @@ for i = 1:4
                     %                 waitforbuttonpress;
                 end
             else
-                spec_seg=Ispec(band:end-band,max(call_candidates(1)-round(temp_length/2),1):min(call_candidates(1)+round(temp_length/2),spec_len));
+                spec_seg=Ispec(spec_seg_x,max(call_candidates(1)-round(temp_length/2),1):min(call_candidates(1)+round(temp_length/2),spec_len));
 
                 cc=xcorr2(spec_seg,template);
                 cc_signal=mat2gray(max(cc));
                 cc_signal=cc_signal(round(temp_length/2)-1:end-round(temp_length/2));
 
 
-                TF = islocalmax(cc_signal,'MinProminence',0.25,'ProminenceWindow',temp_length/2);
+                TF = islocalmax(cc_signal,'MinProminence',MinProm_x,'ProminenceWindow',temp_length/2);
                 location=find(TF);
 
                 if call_candidates(1) <round(temp_length/2)
