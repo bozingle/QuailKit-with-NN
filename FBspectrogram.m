@@ -1,20 +1,23 @@
 function s = FBspectrogram(app)
-
+    
     s = cell(1,4);% t= cell(1,4);
     %column= [1,3,5,7];
-    for i = 1:size(app.AudioFilePlay,2)
-
-        %x = (app.audioSamples(app.subInterval(1):app.subInterval(2),column(i)) + ...
-        %   app.audioSamples(app.subInterval(1):app.subInterval(2),column(i)+1))/2;
+    Audio = app.AudioFilePlay;
+    Interval = app.subInterval(1):app.subInterval(2);
+    window = app.Fs*app.window_size;
+    F = app.F;
+    Fs = app.Fs;
+    noverlap = round(app.noverlap_size*window);
+    parfor i = 1:size(Audio,2)
+        
         try
-            x = app.AudioFilePlay(app.subInterval(1):app.subInterval(2),i);
+            x = Audio(Interval,i);
         catch e
-            x = app.AudioFilePlay(app.subInterval(1):end,i);
+            x = Audio(Interval(1),i);
         end
-        window = app.Fs*app.window_size;
-        noverlap = round(app.noverlap_size*window);
+           
         if window <= length(x)
-            s{i} = spectrogram(x,window,noverlap,app.F,app.Fs);
+            s{i} = spectrogram(x,window,noverlap,F,Fs);
 
             s{i}= mat2gray(abs(s{i}));
         else
@@ -22,6 +25,7 @@ function s = FBspectrogram(app)
         end
 
     end
+    
     if strcmp(app.ModeSwitch.Value,"Online")
         curtime = app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate;
         time = curtime:1:(curtime+10);
@@ -41,4 +45,5 @@ function s = FBspectrogram(app)
         app.UIAxes_3.YLim = [app.F(1),app.F(end)]; app.UIAxes_3.XTickLabel = timestr;
         app.UIAxes_4.YLim = [app.F(1),app.F(end)]; app.UIAxes_4.XTickLabel = timestr;
     end
+    
 end
