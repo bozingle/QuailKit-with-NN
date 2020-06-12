@@ -8,13 +8,13 @@ time = curtime:1:(curtime+10);
 %% Template Reading
 value = app.QuailCallTemplateDropDown.Value;
 
-if isempty(app.template) || strcmp(value,"Default Real Bird")
+if isempty(app.template) || strcmp(value,"Real Bird")
     template=mat2gray(double(imread('template_combined_real_bird_2.jpg')));
 else
     template = app.template;
 end
 
-if strcmp(value,"Default Real Bird") || strcmp(value,"Import Real Bird")
+if strcmp(value,"Real Bird") || strcmp(value,"Import")
     ceil_x = 30;
     MinProm_x = 0.25;
     temp_length_x = 0.5;
