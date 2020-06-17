@@ -1,5 +1,5 @@
 function S = Localization(app,matchedMatrix)
-    matchedMatrix(find(matchedMatrix == 0)) = NaN;
+    %matchedMatrix(find(matchedMatrix == 0)) = NaN;
     lagMatrix = getLagMatrix(matchedMatrix);
     
     S = [];
