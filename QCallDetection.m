@@ -128,35 +128,35 @@ for i = 1:4
         % For Drawing Bounding Boxes
         %pos{i} = [Calls{i} 1200*ones(length(Calls{i}),1) ...
         %    0.5*ones(length(Calls{i}),1) 1900*ones(length(Calls{i}),1)];
-        
-        
-        %% Place Call Times into corresponding variables
-        CallA = Calls{1};
-        CallA(find(CallA==0)) = [];
-        CallB = Calls{2};
-        CallB(find(CallB==0)) = [];
-        CallC = Calls{3};
-        CallC(find(CallC==0)) = [];
-        CallD = Calls{4};
-        CallD(find(CallD==0)) = [];
-        %% Drawing Lines on Calls
-        if app.OffButton.Value == 1 && strcmp(app.ModeSwitch.Value,"Online")
-            for row = 1:size(Calls{1},1)
-                line(app.UIAxes,Calls{1}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
-            end
-            for row = 1:size(Calls{2},1)
-                line(app.UIAxes_2,Calls{2}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
-            end
-            for row = 1:size(Calls{3},1)
-                line(app.UIAxes_3,Calls{3}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
-            end
-            for row = 1:size(Calls{4},1)
-                line(app.UIAxes_4,Calls{4}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
-            end
-        end
+    end
+end
+
+%% Place Call Times into corresponding variables
+CallA = Calls{1};
+CallA(find(CallA==0)) = [];
+CallB = Calls{2};
+CallB(find(CallB==0)) = [];
+CallC = Calls{3};
+CallC(find(CallC==0)) = [];
+CallD = Calls{4};
+CallD(find(CallD==0)) = [];
+%% Drawing Lines on Calls
+if app.OffButton.Value == 1 && strcmp(app.ModeSwitch.Value,"Online")
+    for row = 1:size(Calls{1},1)
+        line(app.UIAxes,Calls{1}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
+    end
+    for row = 1:size(Calls{2},1)
+        line(app.UIAxes_2,Calls{2}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
+    end
+    for row = 1:size(Calls{3},1)
+        line(app.UIAxes_3,Calls{3}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
+    end
+    for row = 1:size(Calls{4},1)
+        line(app.UIAxes_4,Calls{4}(row,:)*ones(1,length(app.F)),app.F,'Color','red','LineWidth',1.5);
     end
 end
 end
+
 %% Drawing Bounding Boxes
 % for row = 1:size(pos{1},1)
 %     rectangle(app.UIAxes,'Position',pos{1}(row,:),'EdgeColor','red')
