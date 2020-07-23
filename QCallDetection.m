@@ -1,4 +1,4 @@
-%Algorithm written by Golnaz Moallem - Modified by Farshad Bolouri to
+% Original Algorithm written by Golnaz Moallem - Modified by Farshad Bolouri to
 %adjust to the software
 function [CallA,CallB,CallC,CallD,Calls] = QCallDetection(app)
 Calls = cell(1,4);
@@ -30,104 +30,117 @@ spec_duration = 10;
 %figure;imshow(template,[])
 %title('Template')
 CallA = [];CallB = [];CallC = [];CallD = [];
+Spectrograms = cell(1,4);
 %% Quail Call Detection
 for i = 1:4
-    Ispec= app.Spectrograms{i};
-    if ~isempty(app.Spectrograms{i})
-        spec_len=size(Ispec,2);
-        spec_width=size(Ispec,1);
-        %figure();imshow(Ispec)
-        if strcmp(value,"Real Bird") || strcmp(value,"Import")
-            band=round((spec_width-temp_width)/3);
-            spec_seg_x= band:size(Ispec,1)-band;
-        else
-            spec_seg_x= 1:size(Ispec,1);
-        end
-        
-        spec_seg_size=ceil(spec_len/ceil_x);
-        
-        call_candidates=[];
-        %call_locations=[];
-        no_seg=ceil(spec_len/spec_seg_size)*2-1;
-        for s=1:no_seg
-            spec_seg=Ispec(spec_seg_x,(s-1)*ceil(spec_seg_size/2)+1:min((s-1)*ceil(spec_seg_size/2)+1+spec_seg_size,spec_len));
-            
-            cc=xcorr2(spec_seg,template);
-            cc_signal=mat2gray(max(cc));
-            cc_signal=cc_signal(round(temp_length/2)-1:end-round(temp_length/2));
-            
-            TF = islocalmax(cc_signal,'MinProminence',MinProm_x,'ProminenceWindow',temp_length/2);
-            locs=find(TF);
-            call=(((s-1)*ceil(spec_seg_size/2)+1)+locs)';
-            call_candidates=[call_candidates;call];
-            
-            %         figure;imshow(spec_seg)
-            %         x=1:length(cc_signal);
-            %         figure;plot(x,cc_signal,x(TF),cc_signal(TF),'r*')
-            %         waitforbuttonpress;
-        end
-        if ~isempty(call_candidates)
-            if length(call_candidates)>1
-                [L,n]=bwlabel(squareform(pdist(call_candidates))<temp_length*temp_length_x,4);
-                for k=1:n
-                    [rows,~]=find(L==k);
-                    rows=unique(rows);
-                    spec_seg=Ispec(spec_seg_x,max(call_candidates(min(rows))-...
-                        round(temp_length/2),1):min(call_candidates(min(rows))+round(temp_length/2),spec_len));
-                    
-                    cc=xcorr2(spec_seg,template);
-                    cc_signal=mat2gray(max(cc));
-                    cc_signal=cc_signal(round(temp_length/2)-1:end-round(temp_length/2));
-                    
-                    TF = islocalmax(cc_signal,'MinProminence',MinProm_x,'ProminenceWindow',temp_length/2);
-                    location=find(TF);
-                    
-                    if call_candidates(min(rows)) <round(temp_length/2)
-                        call=(time(1)+(spec_duration/spec_len)*location);
-                        Calls{i}=[Calls{i};call'];
-                        %call_locations=[call_locations;location'];
-                    else
-                        call=(time(1)+(spec_duration/spec_len)*(call_candidates(min(rows))+location-round(temp_length/2)));
-                        Calls{i}=[Calls{i};call'];
-                        %call_locations=[call_locations;call_candidates(min(rows))+location'-round(temp_length/2)];
-                    end
-                    
-                    %                 figure;imshow(spec_seg)
-                    %                 x=1:length(cc_signal);
-                    %                 figure;plot(x,cc_signal,x(TF),cc_signal(TF),'r*')
-                    %                 waitforbuttonpress;
-                end
+    for channel = 1:2
+        Ispec= app.S_Channels{channel,i};
+        if ~isempty(Ispec)
+            spec_len=size(Ispec,2);
+            spec_width=size(Ispec,1);
+            %figure();imshow(Ispec)
+            if strcmp(value,"Real Bird") || strcmp(value,"Import")
+                band=round((spec_width-temp_width)/3);
+                spec_seg_x= band:size(Ispec,1)-band;
             else
-                spec_seg=Ispec(spec_seg_x,max(call_candidates(1)-round(temp_length/2),1):min(call_candidates(1)+round(temp_length/2),spec_len));
+                spec_seg_x= 1:size(Ispec,1);
+            end
+            
+            spec_seg_size=ceil(spec_len/ceil_x);
+            
+            call_candidates=[];
+            %call_locations=[];
+            no_seg=ceil(spec_len/spec_seg_size)*2-1;
+            for s=1:no_seg
+                spec_seg=Ispec(spec_seg_x,(s-1)*ceil(spec_seg_size/2)+1:min((s-1)*ceil(spec_seg_size/2)+1+spec_seg_size,spec_len));
                 
                 cc=xcorr2(spec_seg,template);
                 cc_signal=mat2gray(max(cc));
                 cc_signal=cc_signal(round(temp_length/2)-1:end-round(temp_length/2));
                 
-                
                 TF = islocalmax(cc_signal,'MinProminence',MinProm_x,'ProminenceWindow',temp_length/2);
-                location=find(TF);
+                locs=find(TF);
+                call=(((s-1)*ceil(spec_seg_size/2)+1)+locs)';
+                call_candidates=[call_candidates;call];
                 
-                if call_candidates(1) <round(temp_length/2)
-                    call=(time(1)+(spec_duration/spec_len)*location)';
-                    Calls{i}=[Calls{i};call'];
-                    %call_locations=[call_locations;location'];
-                else
-                    call=(time(1)+(spec_duration/spec_len)*(call_candidates(1)+location-round(temp_length/2)));
-                    Calls{i}=[Calls{i};call'];
-                    %call_locations=[call_locations;max(call_candidates(1)+location'-round(temp_length/2),1)];
-                end
-                
-                %             figure;imshow(spec_seg)
-                %             x=1:length(cc_signal);
-                %             figure;plot(x,cc_signal,x(TF),cc_signal(TF),'r*')
-                %             waitforbuttonpress;
+                %         figure;imshow(spec_seg)
+                %         x=1:length(cc_signal);
+                %         figure;plot(x,cc_signal,x(TF),cc_signal(TF),'r*')
+                %         waitforbuttonpress;
             end
+            if ~isempty(call_candidates)
+                if length(call_candidates)>1
+                    [L,n]=bwlabel(squareform(pdist(call_candidates))<temp_length*temp_length_x,4);
+                    for k=1:n
+                        [rows,~]=find(L==k);
+                        rows=unique(rows);
+                        spec_seg=Ispec(spec_seg_x,max(call_candidates(min(rows))-...
+                            round(temp_length/2),1):min(call_candidates(min(rows))+round(temp_length/2),spec_len));
+                        
+                        cc=xcorr2(spec_seg,template);
+                        cc_signal=mat2gray(max(cc));
+                        cc_signal=cc_signal(round(temp_length/2)-1:end-round(temp_length/2));
+                        
+                        TF = islocalmax(cc_signal,'MinProminence',MinProm_x,'ProminenceWindow',temp_length/2);
+                        location=find(TF);
+                        
+                        if call_candidates(min(rows)) <round(temp_length/2)
+                            call=(time(1)+(spec_duration/spec_len)*location);
+                            Calls{i}=[Calls{i};call'];
+                            %call_locations=[call_locations;location'];
+                        else
+                            call=(time(1)+(spec_duration/spec_len)*(call_candidates(min(rows))+location-round(temp_length/2)));
+                            Calls{i}=[Calls{i};call'];
+                            %call_locations=[call_locations;call_candidates(min(rows))+location'-round(temp_length/2)];
+                        end
+                        
+                        %                 figure;imshow(spec_seg)
+                        %                 x=1:length(cc_signal);
+                        %                 figure;plot(x,cc_signal,x(TF),cc_signal(TF),'r*')
+                        %                 waitforbuttonpress;
+                    end
+                else
+                    spec_seg=Ispec(spec_seg_x,max(call_candidates(1)-round(temp_length/2),1):min(call_candidates(1)+round(temp_length/2),spec_len));
+                    
+                    cc=xcorr2(spec_seg,template);
+                    cc_signal=mat2gray(max(cc));
+                    cc_signal=cc_signal(round(temp_length/2)-1:end-round(temp_length/2));
+                    
+                    
+                    TF = islocalmax(cc_signal,'MinProminence',MinProm_x,'ProminenceWindow',temp_length/2);
+                    location=find(TF);
+                    
+                    if call_candidates(1) <round(temp_length/2)
+                        call=(time(1)+(spec_duration/spec_len)*location)';
+                        Calls{i}=[Calls{i};call'];
+                        %call_locations=[call_locations;location'];
+                    else
+                        call=(time(1)+(spec_duration/spec_len)*(call_candidates(1)+location-round(temp_length/2)));
+                        Calls{i}=[Calls{i};call'];
+                        %call_locations=[call_locations;max(call_candidates(1)+location'-round(temp_length/2),1)];
+                    end
+                    
+                    %             figure;imshow(spec_seg)
+                    %             x=1:length(cc_signal);
+                    %             figure;plot(x,cc_signal,x(TF),cc_signal(TF),'r*')
+                    %             waitforbuttonpress;
+                end
+            end
+            
+            % For Drawing Bounding Boxes
+            %pos{i} = [Calls{i} 1200*ones(length(Calls{i}),1) ...
+            %    0.5*ones(length(Calls{i}),1) 1900*ones(length(Calls{i}),1)];
         end
-        
-        % For Drawing Bounding Boxes
-        %pos{i} = [Calls{i} 1200*ones(length(Calls{i}),1) ...
-        %    0.5*ones(length(Calls{i}),1) 1900*ones(length(Calls{i}),1)];
+    end
+    
+    Calls{i} = sort(Calls{i});
+    j=1;
+    while j < length(Calls{i})
+        if abs(Calls{i}(j) - Calls{i}(j+1)) < 0.15
+            Calls{i}(j) = (Calls{i}(j) + Calls{i}(j+1))/2;
+            Calls{i}(j+1) = [];
+        end
+        j = j+1;
     end
 end
 

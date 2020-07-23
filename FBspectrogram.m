@@ -1,23 +1,30 @@
-function s = FBspectrogram(app)
-s = cell(1,4);% t= cell(1,4);
+function [Ave, Channels]  = FBspectrogram(app)
+Ave = cell(1,4);% t= cell(1,4);
+Channels = cell(2,4);
 %column= [1,3,5,7];
-for i = 1:size(app.AudioFilePlay,2)
-    
+for i = 1:size(app.AudioChannel{1},2)  
     %x = (app.audioSamples(app.subInterval(1):app.subInterval(2),column(i)) + ...
     %   app.audioSamples(app.subInterval(1):app.subInterval(2),column(i)+1))/2;
-    try
-        x = app.AudioFilePlay(app.subInterval(1):app.subInterval(2),i);
-    catch e
-        x = app.AudioFilePlay(app.subInterval(1):end,i);
+    
+    for j = 1:2
+        try
+            x = app.AudioChannel{j}(app.subInterval(1):app.subInterval(2),i);
+        catch e
+            x = app.AudioChannel{j}(app.subInterval(1):end,i);
+        end
+        window = app.Fs*app.window_size;
+        noverlap = round(app.noverlap_size*window);
+        if window <= length(x)
+            Channels{j,i} = spectrogram(x,window,noverlap,app.F,app.Fs);
+            
+            Channels{j,i}= mat2gray(abs(Channels{j,i}));
+        else
+            Channels{j,i} = [];
+        end
     end
-    window = app.Fs*app.window_size;
-    noverlap = round(app.noverlap_size*window);
-    if window <= length(x)
-        s{i} = spectrogram(x,window,noverlap,app.F,app.Fs);
-        
-        s{i}= mat2gray(abs(s{i}));
-    else
-        s{i} = [];
+    
+    if strcmp(app.ModeSwitch.Value,"Online")
+        Ave{i} = (Channels{1,i} + Channels{2,i}) / 2;
     end
     
 end
@@ -26,10 +33,10 @@ if strcmp(app.ModeSwitch.Value,"Online")
     time = curtime:1:(curtime+10);
     timestr = app.convertToRealTime(time);
     
-    imagesc(app.UIAxes,time,app.F,s{1})
-    imagesc(app.UIAxes_2,time,app.F,s{2})
-    imagesc(app.UIAxes_3,time,app.F,s{3})
-    imagesc(app.UIAxes_4,time,app.F,s{4})
+    imagesc(app.UIAxes,time,app.F,Ave{1})
+    imagesc(app.UIAxes_2,time,app.F,Ave{2})
+    imagesc(app.UIAxes_3,time,app.F,Ave{3})
+    imagesc(app.UIAxes_4,time,app.F,Ave{4})
     
     app.UIAxes.YDir = 'normal'; app.UIAxes.XLim = [time(1),time(end)];
     app.UIAxes_2.YDir = 'normal'; app.UIAxes_2.XLim = [time(1),time(end)];
