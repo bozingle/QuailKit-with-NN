@@ -11,7 +11,8 @@ function batchProcess(app)
         CallsA = [CallsA; CallA];CallsB = [CallsB; CallB];CallsC = [CallsC; CallC];CallsD = [CallsD; CallD];
         if (~isempty(CallA) + ~isempty(CallB) + ~isempty(CallC) + ~isempty(CallD))/4  >= 3/4
             matchedMatrix = [matchedMatrix GM_MatchCalls(CallA,CallB,CallC,CallD,GM_EstimateMaxTimeLag(readtable(app.metPaths(1)),...
-                readtable(app.metPaths(2)),readtable(app.metPaths(3)),readtable(app.metPaths(4))))];
+                readtable(app.metPaths(2)),readtable(app.metPaths(3)),readtable(app.metPaths(4)),...
+                avg10sTemp(app.metPaths,app.loadIntervalRate*app.curLoadInterval+app.loadSubIntervalRate*app.curSubInterval)))];
         end
         totalSeconds = (app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate) + 10;
         if totalSeconds*app.Fs < app.Samples && totalSeconds >= 0
@@ -84,4 +85,31 @@ function batchProcess(app)
             'TP','FP','FN'});
         writetable(T,resultfile,"Sheet","ConfusionMatrix");
     end
+end
+function avgTemp = avg10sTemp(metPaths, tensInterval)
+    %Preallocate the array
+    mictempavgs = zeros(1,4);
+    
+    % Iterate through metadata filepaths.
+    for i = 1:length(metPaths)
+        %Read data in
+        metadata = readtable(metPaths(i));
+        
+        %Format time values
+        times = str2double(split(string(metadata.TIME, ':')));
+        times = 60^2*(times(:,1) - times(1,1)) + 60*(times(:,2)-times(1,2)) + times(:,3)-times(1,3)
+        
+        %Find the time indexes that concern us
+        timedif = times - tensInterval;
+        indices = intersect(find(timedif >= 0),find(timedif <= 10));
+        
+        %Average the temps
+        mictempavg = mean(metadata.TEMP_C_(indices));
+        
+        %Append average to the avgs matrix
+        mictempavgs(i) = mictempavg;
+    end
+    
+    %Return full temp average
+    avgTemp = mean(mictempavgs);
 end

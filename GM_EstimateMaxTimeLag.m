@@ -1,5 +1,4 @@
-function maxTimeLag=GM_EstimateMaxTimeLag(metaDataA,metaDataB,metaDataC,metaDataD)
-temprature=mean([mean(metaDataA.TEMP_C_) mean(metaDataB.TEMP_C_) mean(metaDataC.TEMP_C_) mean(metaDataD.TEMP_C_)]);
+function maxTimeLag=GM_EstimateMaxTimeLag(metaDataA,metaDataB,metaDataC,metaDataD,temprature)
 SoundSpeed=331+(0.6*temprature);
 
 Lat=[mean(metaDataA.LAT) mean(metaDataB.LAT) mean(metaDataC.LAT) mean(metaDataD.LAT)];
