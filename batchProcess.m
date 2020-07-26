@@ -5,32 +5,33 @@ function batchProcess(app)
     app.curLoadInterval = 0; app.curSubInterval = 0;
     app.UpdateAudio(0);
     
+    %Preallocate temps matrix
+    temps = zeros(floor(app.Samples/app.loadSubIntervalRate),1);
+    i = 1;
     while true && strcmp(app.ModeSwitch.Value,"Offline")
-        try
         [CallA,CallB,CallC,CallD] = QCallDetection(app);
         CallsA = [CallsA; CallA];CallsB = [CallsB; CallB];CallsC = [CallsC; CallC];CallsD = [CallsD; CallD];
+        temps(i) = avg10sTemp(app.metPaths,app.loadIntervalRate*app.curLoadInterval+app.loadSubIntervalRate*app.curSubInterval);
         if (~isempty(CallA) + ~isempty(CallB) + ~isempty(CallC) + ~isempty(CallD))/4  >= 3/4
             matchedMatrix = [matchedMatrix GM_MatchCalls(CallA,CallB,CallC,CallD,GM_EstimateMaxTimeLag(readtable(app.metPaths(1)),...
                 readtable(app.metPaths(2)),readtable(app.metPaths(3)),readtable(app.metPaths(4)),...
-                avg10sTemp(app.metPaths,app.loadIntervalRate*app.curLoadInterval+app.loadSubIntervalRate*app.curSubInterval)))];
+                temps(i)))];
         end
         totalSeconds = (app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate) + 10;
         if totalSeconds*app.Fs < app.Samples && totalSeconds >= 0
             app.UpdateAudio(totalSeconds);
             app.NorecordingsloadedyetLabel.Text = "Batch Processing("+string(num2str(floor((totalSeconds*app.Fs/app.Samples)*10000)/100))+"/100%)";
             drawnow;
+            i = i+1;
         else
             app.NorecordingsloadedyetLabel.Text = "Batch Processing("+string(num2str(floor((totalSeconds*app.Fs/app.Samples)*10000)/100))+"/100%)";
             drawnow;
             break;
         end
-        catch e
-            disp("p");
-        end
     end
     
     if strcmp(app.ModeSwitch.Value,"Offline")
-        localizations = Localization(app, matchedMatrix);
+        [localizations,c]= Localization(app, matchedMatrix,temps);
     end
     %% Record data   
     if strcmp(app.ModeSwitch.Value,"Offline")
@@ -46,6 +47,8 @@ function batchProcess(app)
         end
         writecell(T,resultfile,"Sheet","Microphone Positions(GPS)");
         
+        T{1,2} = "Easting"; 
+        T{1,3} = "Northing";
         micposUTM = ll2utm(app.micpos(:,1),app.micpos(:,2));
         for i = 2:size(app.micNames,2)+1
             T{i,2} = micposUTM(i-1,1);
@@ -96,8 +99,8 @@ function avgTemp = avg10sTemp(metPaths, tensInterval)
         metadata = readtable(metPaths(i));
         
         %Format time values
-        times = str2double(split(string(metadata.TIME, ':')));
-        times = 60^2*(times(:,1) - times(1,1)) + 60*(times(:,2)-times(1,2)) + times(:,3)-times(1,3)
+        times = str2double(split(string(metadata.TIME), ':'));
+        times = 60^2*(times(:,1) - times(1,1)) + 60*(times(:,2)-times(1,2)) + times(:,3)-times(1,3);
         
         %Find the time indexes that concern us
         timedif = times - tensInterval;
