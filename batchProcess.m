@@ -6,18 +6,21 @@ function batchProcess(app)
     app.UpdateAudio(0);
     
     %Preallocate temps matrix
-    temps = zeros(floor(app.Samples/app.loadSubIntervalRate),1);
+    temps = zeros(floor(app.Samples/(app.Fs*app.loadSubIntervalRate)),1);
     i = 1;
+    prevTempVal = NaN;
     while true && strcmp(app.ModeSwitch.Value,"Offline")
+        totalSeconds = (app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate) + 10;
         [CallA,CallB,CallC,CallD] = QCallDetection(app);
         CallsA = [CallsA; CallA];CallsB = [CallsB; CallB];CallsC = [CallsC; CallC];CallsD = [CallsD; CallD];
-        temps(i) = avg10sTemp(app.metPaths,app.loadIntervalRate*app.curLoadInterval+app.loadSubIntervalRate*app.curSubInterval);
+        temps(i) = avg10sTemp(app.metPaths,totalSeconds-10,prevTempVal);
+        prevTempVal = temps(i);
         if (~isempty(CallA) + ~isempty(CallB) + ~isempty(CallC) + ~isempty(CallD))/4  >= 3/4
             matchedMatrix = [matchedMatrix GM_MatchCalls(CallA,CallB,CallC,CallD,GM_EstimateMaxTimeLag(readtable(app.metPaths(1)),...
                 readtable(app.metPaths(2)),readtable(app.metPaths(3)),readtable(app.metPaths(4)),...
                 temps(i)))];
         end
-        totalSeconds = (app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate) + 10;
+        
         if totalSeconds*app.Fs < app.Samples && totalSeconds >= 0
             app.UpdateAudio(totalSeconds);
             app.NorecordingsloadedyetLabel.Text = "Batch Processing("+string(num2str(floor((totalSeconds*app.Fs/app.Samples)*10000)/100))+"/100%)";
@@ -56,6 +59,15 @@ function batchProcess(app)
         end
         writecell(T,resultfile,"Sheet","Microphone Positions(UTM)");
         
+        T = {};
+        T{1,1} = "10s intervals"; 
+        T{1,2} = "Speed of Sound ";
+        for i = 2:size(c,1)+1
+            T{i,1} = i-1;
+            T{i,2} = c(i-1,1);
+        end
+        writecell(T,resultfile,"Sheet","Speed of Sounds");
+        
         T = table(CallsA);
         T.Properties.VariableNames = "Time Detected";
         writetable(T,resultfile,"Sheet",app.micNames(1));
@@ -89,7 +101,7 @@ function batchProcess(app)
         writetable(T,resultfile,"Sheet","ConfusionMatrix");
     end
 end
-function avgTemp = avg10sTemp(metPaths, tensInterval)
+function avgTemp = avg10sTemp(metPaths, tensInterval, prevTempVal)
     %Preallocate the array
     mictempavgs = zeros(1,4);
     
@@ -106,8 +118,16 @@ function avgTemp = avg10sTemp(metPaths, tensInterval)
         timedif = times - tensInterval;
         indices = intersect(find(timedif >= 0),find(timedif <= 10));
         
-        %Average the temps
-        mictempavg = mean(metadata.TEMP_C_(indices));
+        %Checks if the temp values exist
+        temps = metadata.TEMP_C_(indices);
+        if ~isempty(temps)
+            %Average the temps
+            mictempavg = mean(temps);
+        else
+            %Assume the previous temp value is the current temp value for
+            %this 10 seconds
+            mictempavg = prevTempVal;
+        end
         
         %Append average to the avgs matrix
         mictempavgs(i) = mictempavg;

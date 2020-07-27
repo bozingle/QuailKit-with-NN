@@ -1,7 +1,7 @@
 %% New with excel
 function [S,c] = Localization(app, matchedMatrix, temps)
     %Instantiations
-    filename = fullfile(mfilename('fullpath'),"S2 Sound Finder for Spreadsheets.xlsx");
+    filename = fullfile(pwd,"S2 Sound Finder for Spreadsheets.xls");
     matchedMatrix(matchedMatrix == 0) = NaN;
     lagMatrix = getLagMatrix(matchedMatrix);
     
@@ -9,42 +9,44 @@ function [S,c] = Localization(app, matchedMatrix, temps)
     
     %Microphone locations
     micUTMpos = ll2utm(app.micpos(:,1),app.micpos(:,2));
-    writematrix(micUTMpos,filename,'Sheet', 'mic', 'Range',"B3:C"+num2str(size(app.micpos,1)));
+    writematrix(micUTMpos,filename,'Sheet', 'mic', 'Range',"B3:C"+num2str(3+size(app.micpos,1)));
     
     %Write lagmatrix
-    writematrix(lagMatrix',filename,'Sheet', 'sound','Range',"C4:F"+num2str(size(lagMatrix',1)));
+    writematrix(lagMatrix',filename,'Sheet', 'sound','Range',"C4:F"+num2str(4+size(lagMatrix',1)));
     
     %Write Temperatures
     %Put in temps for 10s intervals.
-    timeVals = mean(matchedMatrix,2,'omitnan');
+    timeVals = mean(matchedMatrix,1,'omitnan');
     tempMat = getTempMatrix(temps,timeVals);
-    writematrix(tempMat,filename,'Sheet', 'sound','Range',"B4:B"+num2str(size(lagMatrix',1)));
+    writematrix(tempMat,filename,'Sheet', 'sound','Range',"B4:B"+num2str(4+size(lagMatrix',1)));
     
     % .. iterate or batch process?
     %Preallocate array and open Excel
-    S = zeros(size(lagMatrix,2),3);
-    c = zeros(floor(app.Samples/app.loadSubIntervalRate),1);
-    Excel = actxserver('Excel.Application');
+    S = [];
+    c = 331.3*sqrt(1+temps/273.15);
     
-    for i = 1:size(lagMatrix,2)
-        %Write current localization to sheet
-        writematrix(i,filename,'Sheet','prep','Range','B1');
-        
-        %Open and close to make the calculations
-        workbook = Excel.Workbooks.Open(filename);
-        workbook.Save;
-        workbook.Close;
-        
-        %Write solution into S
-        soln = readmatrix(filename,'Sheet','find2D','Range','Q23:Q24')';
-        S(i,:) = [i soln];
-        
-        %Write speed of sounds down
-        if mod(i-1,10) == 0
-            readmatrix(filename,'Sheet','find2D','Range','B5');
-        end
-    end
-    Excel.Quit;
+%     Excel = actxserver('Excel.Application');
+%     
+%     for i = 1:size(lagMatrix,2)
+%         %Write current localization to sheet
+%         writematrix(i,filename,'Sheet','prep','Range','B1');
+%         
+%         %Open and close to make the calculations
+%         workbook = Excel.Workbooks.Open(filename);
+%         workbook.Save;
+%         workbook.Close;
+%         
+%         %Write solution into S
+%         soln = readmatrix(filename,'Sheet','find2D','Range','Q23:Q24')';
+%         S(i,:) = [i soln];
+%         
+%         %Write speed of sounds down
+%         if mod(i-1,10) == 0
+%             speed = readmatrix(filename,'Sheet','prep','Range','B5');
+%             c(i) = speed(2);
+%         end
+%     end
+%     Excel.Quit;
 end
 
 %% Old Function
@@ -116,11 +118,12 @@ function tempMat = getTempMatrix(temps,timeVals)
     %Iterate through the temperatures
     for i = 1:length(temps)
         %Find timeVal indices for tempMat.
-        tempTimeVals = timVals - i*10;
-        indices = intersect(find(tempTimeVals > 0),find(tempTimeVals <= 10))
+        tempTimeVals = timeVals - i*10;
+        indices = intersect(find(tempTimeVals >= 0),find(tempTimeVals < 10))
         
         tempMat(indices) = temps(i);
     end
+    tempMat = tempMat';
 end
 
 function lagMatrix = getLagMatrix(matchedMatrix)
