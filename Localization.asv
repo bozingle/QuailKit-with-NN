@@ -22,31 +22,29 @@ function [S,c] = Localization(app, matchedMatrix, temps)
     
     % .. iterate or batch process?
     %Preallocate array and open Excel
-    S = [];
-    c = 331.3*sqrt(1+temps/273.15);
+    S = zeros(size(lagMatrix,2),3);
+    c = zeros(floor(app.Samples/app.loadSubIntervalRate),1);
+    Excel = actxserver('Excel.Application');
     
-%     Excel = actxserver('Excel.Application');
-%     
-%     for i = 1:size(lagMatrix,2)
-%         %Write current localization to sheet
-%         writematrix(i,filename,'Sheet','prep','Range','B1');
-%         
-%         %Open and close to make the calculations
-%         workbook = Excel.Workbooks.Open(filename);
-%         workbook.Save;
-%         workbook.Close;
-%         
-%         %Write solution into S
-%         soln = readmatrix(filename,'Sheet','find2D','Range','Q23:Q24')';
-%         S(i,:) = [i soln];
-%         
-%         %Write speed of sounds down
-%         if mod(i-1,10) == 0
-%             speed = readmatrix(filename,'Sheet','prep','Range','B5');
-%             c(i) = speed(2);
-%         end
-%     end
-%     Excel.Quit;
+    for i = 1:size(lagMatrix,2)
+        %Write current localization to sheet
+        writematrix(i,filename,'Sheet','prep','Range','B1');
+        
+        %Open and close to make the calculations
+        workbook = Excel.Workbooks.Open(filename);
+        workbook.Save;
+        workbook.Close;
+        
+        %Write solution into S
+        soln = readmatrix(filename,'Sheet','find2D','Range','Q23:Q24')';
+        S(i,:) = [i soln];
+        
+        %Write speed of sounds down
+        if mod(i-1,10) == 0
+            c(i) = readmatrix(filename,'Sheet','prep','Range','B5');
+        end
+    end
+    Excel.Quit;
 end
 
 %% Old Function

@@ -6,7 +6,7 @@ function batchProcess(app)
     app.UpdateAudio(0);
     
     %Preallocate temps matrix
-    temps = zeros(floor(app.Samples/(app.Fs*app.loadSubIntervalRate)),1);
+    temps = zeros(ceil(app.Samples/(app.Fs*app.loadSubIntervalRate)),1);
     i = 1;
     prevTempVal = NaN;
     while true && strcmp(app.ModeSwitch.Value,"Offline")
@@ -58,15 +58,6 @@ function batchProcess(app)
             T{i,3} = micposUTM(i-1,1);
         end
         writecell(T,resultfile,"Sheet","Microphone Positions(UTM)");
-        
-        T = {};
-        T{1,1} = "10s intervals"; 
-        T{1,2} = "Speed of Sound ";
-        for i = 2:size(c,1)+1
-            T{i,1} = i-1;
-            T{i,2} = c(i-1,1);
-        end
-        writecell(T,resultfile,"Sheet","Speed of Sounds");
         
         T = table(CallsA);
         T.Properties.VariableNames = "Time Detected";
