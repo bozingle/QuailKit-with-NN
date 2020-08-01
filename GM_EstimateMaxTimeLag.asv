@@ -1,0 +1,64 @@
+function maxTimeLag=GM_EstimateMaxTimeLag(metaDataA,metaDataB,metaDataC,metaDataD,temprature)
+if isnan(temprature)
+end
+SoundSpeed=331+(0.6*temprature);
+
+Lat=[mean(metaDataA.LAT) mean(metaDataB.LAT) mean(metaDataC.LAT) mean(metaDataD.LAT)];
+Long=[mean(-metaDataA.LON) mean(-metaDataB.LON) mean(-metaDataC.LON) mean(-metaDataD.LON)];
+
+dist=zeros(1,6);
+[D,~]=distance(Lat(1),Long(1),Lat(2),Long(2));
+dist(1)=deg2km(D,'earth');
+[D,~]=distance(Lat(1),Long(1),Lat(3),Long(3));
+dist(2)=deg2km(D,'earth');
+[D,~]=distance(Lat(1),Long(1),Lat(4),Long(4));
+dist(3)=deg2km(D,'earth');
+
+[D,~]=distance(Lat(2),Long(2),Lat(3),Long(3));
+dist(4)=deg2km(D,'earth');
+[D,~]=distance(Lat(2),Long(2),Lat(4),Long(4));
+dist(5)=deg2km(D,'earth');
+
+[D,~]=distance(Lat(3),Long(3),Lat(4),Long(4));
+dist(6)=deg2km(D,'earth');
+
+MaxDistance=max(dist)*1000;
+
+maxTimeLag=MaxDistance/SoundSpeed;
+end
+
+function avgTemp = avg10sTemp(metPaths, tensInterval, prevTempVal)
+    %Preallocate the array
+    mictempavgs = zeros(1,4);
+    
+    % Iterate through metadata filepaths.
+    for i = 1:length(metPaths)
+        %Read data in
+        metadata = readtable(metPaths(i));
+        
+        %Format time values
+        times = str2double(split(string(metadata.TIME), ':'));
+        times = 60^2*(times(:,1) - times(1,1)) + 60*(times(:,2)-times(1,2)) + times(:,3)-times(1,3);
+        
+        %Find the time indexes that concern us
+        timedif = times - tensInterval;
+        indices = intersect(find(timedif >= 0),find(timedif <= 10));
+        
+        %Checks if the temp values exist
+        temps = metadata.TEMP_C_(indices);
+        if ~isempty(temps)
+            %Average the temps
+            mictempavg = mean(temps);
+        else
+            %Assume the previous temp value is the current temp value for
+            %this 10 seconds
+            mictempavg = prevTempVal;
+        end
+        
+        %Append average to the avgs matrix
+        mictempavgs(i) = mictempavg;
+    end
+    
+    %Return full temp average
+    avgTemp = mean(mictempavgs);
+end

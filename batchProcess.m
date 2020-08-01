@@ -34,10 +34,30 @@ function batchProcess(app)
     end
     
     if strcmp(app.ModeSwitch.Value,"Offline")
-        [localizations,c]= Localization(app, matchedMatrix,temps);
-    end
+        %Instantiations
+        filename = fullfile(pwd,"S2 Sound Finder for Spreadsheets.xls");
+        matchedMatrix(matchedMatrix == 0) = NaN;
+        lagMatrix = getLagMatrix(matchedMatrix);
+        app.localizations = zeros(size(matchedMatrix,2),3);
+        
+        %Write data into Excel file
+    
+        %Microphone locations
+        micUTMpos = ll2utm(app.micpos(:,1),app.micpos(:,2));
+        writematrix(micUTMpos,filename,'Sheet', 'mic', 'Range',"B3:C"+num2str(3+size(app.micpos,1)));
+
+        %Write lagmatrix
+        writematrix(lagMatrix',filename,'Sheet', 'sound','Range',"C4:F"+num2str(4+size(lagMatrix',1)));
+
+        %Write Temperatures
+        %Put in temps for 10s intervals.
+        timeVals = mean(matchedMatrix,1,'omitnan');
+        tempMat = getTempMatrix(temps,timeVals);
+        writematrix(tempMat,filename,'Sheet', 'sound','Range',"B4:B"+num2str(4+size(lagMatrix',1)));
+    
+        c = 331.3*sqrt(1+temps/273.15);
+    
     %% Record data   
-    if strcmp(app.ModeSwitch.Value,"Offline")
         resultfile = fullfile(app.dataPath,"results.xlsx");
         
         T = {};
@@ -88,17 +108,24 @@ function batchProcess(app)
             app.micNames(4)}'];
         writetable(T,resultfile,"Sheet","matchedMatrix");
         
-        T = table(localizations(:,1),localizations(:,2),localizations(:,3));
-        T.Properties.VariableNames = ["Number Matched Call","Latitude", "Longitude"];
-        writetable(T,resultfile,"Sheet","Localizations");
+%         T = table(localizations(:,1),localizations(:,2),localizations(:,3));
+%         T.Properties.VariableNames = ["Number Matched Call","Latitude", "Longitude"];
+%         writetable(T,resultfile,"Sheet","Localizations");
         
         %% Confusion Matrix
-        [~,~,Annotated] = annotationsBBox(app);
-        [TP,FP,FN] = confusionMat(Annotated,{CallsA,CallsB,CallsC,CallsD});
-        T = table({app.micNames(1);app.micNames(2);app.micNames(3);...
-            app.micNames(4)},TP',FP',FN','VariableNames',{'Microphones',...
-            'TP','FP','FN'});
-        writetable(T,resultfile,"Sheet","ConfusionMatrix");
+        contents = dir(fullfile(app.dataPath,"GT"));
+        if size(contents,1)-2 > 0
+            [~,~,Annotated] = annotationsBBox(app);
+            [TP,FP,FN] = confusionMat(Annotated,{CallsA,CallsB,CallsC,CallsD});
+            T = table({app.micNames(1);app.micNames(2);app.micNames(3);...
+                app.micNames(4)},TP',FP',FN','VariableNames',{'Microphones',...
+                'TP','FP','FN'});
+            writetable(T,resultfile,"Sheet","ConfusionMatrix");
+        end
+        
+        app.FinishButton.BackgroundColor = [0.90,0.90,0.90];
+        app.BatchprocessLabel.Text = "Finish up the processing in Excel for "+num2str(size(matchedMatrix,2))+ " calls. Press finish when done.";
+        app.FinishButton.Visible = true;
     end
 end
 function avgTemp = avg10sTemp(metPaths, tensInterval, prevTempVal)
@@ -135,4 +162,28 @@ function avgTemp = avg10sTemp(metPaths, tensInterval, prevTempVal)
     
     %Return full temp average
     avgTemp = mean(mictempavgs);
+end
+
+function tempMat = getTempMatrix(temps,timeVals)
+    %Preallocate tempMat
+    tempMat = zeros(size(timeVals,1),1);
+    %Iterate through the temperatures
+    for i = 1:length(temps)
+        %Find timeVal indices for tempMat.
+        tempTimeVals = timeVals - i*10;
+        indices = intersect(find(tempTimeVals >= 0),find(tempTimeVals < 10));
+        
+        tempMat(indices) = temps(i);
+    end
+    tempMat = tempMat';
+end
+
+function lagMatrix = getLagMatrix(matchedMatrix)
+   lagMatrix = [];
+   i = 1;
+   while i <= size(matchedMatrix,2)
+       minVal = min(matchedMatrix(:,i));
+       lagMatrix(:,i) = matchedMatrix(:,i) - minVal;
+       i = i + 1;
+   end
 end
