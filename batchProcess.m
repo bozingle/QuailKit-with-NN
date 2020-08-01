@@ -6,7 +6,7 @@ function batchProcess(app)
     app.UpdateAudio(0);
     
     %Preallocate temps matrix
-    temps = zeros(floor(app.Samples/(app.Fs*app.loadSubIntervalRate)),1);
+    temps = zeros(ceil(app.Samples/(app.Fs*app.loadSubIntervalRate)),1);
     i = 1;
     prevTempVal = NaN;
     while true && strcmp(app.ModeSwitch.Value,"Offline")
