@@ -40,8 +40,9 @@ function S = Localization(app, matchedMatrix)
         
     end
     Excel.Quit;
-    
-    S(:,3:4) = utm2ll(S(:,3),S(:,4), ones(size(S,1),1)*14);
+    if ~isempty(S)
+        S(:,3:4) = utm2ll(S(:,3),S(:,4), ones(size(S,1),1)*14);
+    end
 end
 
 function avgTemp = avg10sTemp(app,metPaths, tensInterval, prevTempVal)
@@ -71,7 +72,8 @@ function avgTemp = avg10sTemp(app,metPaths, tensInterval, prevTempVal)
             %Average the temps
             mictempavg = mean(temps);
         elseif isnan(prevTempVal)
-            timedif = times - times(abs(timedif) == min(abs(timedif)));
+            timevals = times(abs(timedif) == min(abs(timedif)));
+            timedif = times - timevals(end);
             indices = intersect(find(timedif >= 0),find(timedif <= 10));
             temps = metadata.TEMP_C_(timeindices);
             temps = temps(indices);
