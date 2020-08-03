@@ -2,15 +2,19 @@
 function S = Localization(app, matchedMatrix)
     %Instantiations
     filename = fullfile(pwd,"S2 Sound Finder for Spreadsheets.xls");
-    numCalls = num2str(size(matchedMatrix,2));
+    numCalls = size(matchedMatrix,2);
     
     matchedMatrix(matchedMatrix == 0) = NaN;
     lagMatrix = getLagMatrix(matchedMatrix);
-    writematrix(lagMatrix',filename,"Sheet","sound","Range","C4:F"+numCalls);
+    writematrix(lagMatrix',filename,"Sheet","sound","Range","C4:F"+num2str(4+numCalls));
     
     timeVals = mean(matchedMatrix',2,'omitnan');
-    temps = avg10sTemp(app.metPaths, floor(timeVals(1)/10)*10, NaN)*ones(size(matchedMatrix,2),1);
-    writematrix(temps,filename,"Sheet","sound","Range","A4:A"+numCalls);
+    temps = avg10sTemp(app,app.metPaths, floor(timeVals(1)/10)*10,nan)*ones(numCalls,1);
+    writematrix(temps,filename,"Sheet","sound","Range","B4:B"+num2str(4+numCalls));
+    
+    %Microphone locations
+    micUTMpos = ll2utm(app.micpos(:,1),app.micpos(:,2));
+    writematrix(micUTMpos,filename,'Sheet', 'mic', 'Range',"B3:C"+num2str(3+size(app.micpos,1)));
     
     % .. iterate or batch process?
     %Preallocate array and open Excel
@@ -40,7 +44,7 @@ function S = Localization(app, matchedMatrix)
     S(:,3:4) = utm2ll(S(:,3),S(:,4), ones(size(S,1),1)*14);
 end
 
-function avgTemp = avg10sTemp(metPaths, tensInterval, prevTempVal)
+function avgTemp = avg10sTemp(app,metPaths, tensInterval, prevTempVal)
     %Preallocate the array
     mictempavgs = zeros(1,4);
     
@@ -51,6 +55,9 @@ function avgTemp = avg10sTemp(metPaths, tensInterval, prevTempVal)
         
         %Format time values
         times = str2double(split(string(metadata.TIME), ':'));
+        timeindices = intersect(find((metadata.DATE+metadata.TIME - app.Date) <= duration(24,0,0)- duration(app.Date.Hour,0,0)),...
+            find((metadata.DATE+metadata.TIME - app.Date) >= 0));
+        times = times(timeindices,:);
         times = 60^2*(times(:,1) - times(1,1)) + 60*(times(:,2)-times(1,2)) + times(:,3)-times(1,3);
         
         %Find the time indexes that concern us
@@ -58,9 +65,16 @@ function avgTemp = avg10sTemp(metPaths, tensInterval, prevTempVal)
         indices = intersect(find(timedif >= 0),find(timedif <= 10));
         
         %Checks if the temp values exist
-        temps = metadata.TEMP_C_(indices);
+        temps = metadata.TEMP_C_(timeindices);
+        temps = temps(indices);
         if ~isempty(temps)
             %Average the temps
+            mictempavg = mean(temps);
+        elseif isnan(prevTempVal)
+            timedif = times - times(abs(timedif) == min(abs(timedif)));
+            indices = intersect(find(timedif >= 0),find(timedif <= 10));
+            temps = metadata.TEMP_C_(timeindices);
+            temps = temps(indices);
             mictempavg = mean(temps);
         else
             %Assume the previous temp value is the current temp value for
