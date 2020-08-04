@@ -33,7 +33,7 @@ function S = Localization(app, matchedMatrix)
         
         %Write solution into S
         soln = readmatrix(filename,'Sheet','find2D','Range','Q23:Q24')';
-        if ~isempty(soln)
+        if ~isempty(soln) && ~isnan(soln(1))
             S(incnum,:) = [i incnum soln];
             incnum = incnum + 1;
         end
