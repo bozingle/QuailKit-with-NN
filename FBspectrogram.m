@@ -2,6 +2,9 @@ function [Ave, Channels]  = FBspectrogram(app)
 Ave = cell(1,4);% t= cell(1,4);
 Channels = cell(2,4);
 %column= [1,3,5,7];
+window = app.Fs*app.window_size;
+noverlap = round(app.noverlap_size*window);
+
 for i = 1:size(app.AudioChannel{1},2)  
     %x = (app.audioSamples(app.subInterval(1):app.subInterval(2),column(i)) + ...
     %   app.audioSamples(app.subInterval(1):app.subInterval(2),column(i)+1))/2;
@@ -12,8 +15,7 @@ for i = 1:size(app.AudioChannel{1},2)
         catch e
             x = app.AudioChannel{j}(app.subInterval(1):end,i);
         end
-        window = app.Fs*app.window_size;
-        noverlap = round(app.noverlap_size*window);
+
         if window <= length(x)
             Channels{j,i} = spectrogram(x,window,noverlap,app.F,app.Fs);
             

@@ -30,7 +30,6 @@ spec_duration = 10;
 %figure;imshow(template,[])
 %title('Template')
 CallA = [];CallB = [];CallC = [];CallD = [];
-Spectrograms = cell(1,4);
 %% Quail Call Detection
 for i = 1:4
     for channel = 1:2
