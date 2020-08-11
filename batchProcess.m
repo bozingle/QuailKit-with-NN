@@ -66,7 +66,7 @@ function batchProcess(app)
         for i = 2:size(app.micNames,2)+1
             T{i,1} = app.micNames(i-1);
             T{i,2} = app.micpos(i-1,1);
-            T{i,3} = app.micpos(i-1,1);
+            T{i,3} = app.micpos(i-1,2);
         end
         writecell(T,resultfile,"Sheet","Microphone Positions(GPS)");
         
@@ -75,7 +75,7 @@ function batchProcess(app)
         micposUTM = ll2utm(app.micpos(:,1),app.micpos(:,2));
         for i = 2:size(app.micNames,2)+1
             T{i,2} = micposUTM(i-1,1);
-            T{i,3} = micposUTM(i-1,1);
+            T{i,3} = micposUTM(i-1,2);
         end
         writecell(T,resultfile,"Sheet","Microphone Positions(UTM)");
         
@@ -139,6 +139,9 @@ function avgTemp = avg10sTemp(metPaths, tensInterval, prevTempVal)
         
         %Format time values
         times = str2double(split(string(metadata.TIME), ':'));
+        if size(times,2) == 1
+            times = times';
+        end
         times = 60^2*(times(:,1) - times(1,1)) + 60*(times(:,2)-times(1,2)) + times(:,3)-times(1,3);
         
         %Find the time indexes that concern us

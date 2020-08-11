@@ -56,18 +56,31 @@ function avgTemp = avg10sTemp(app,metPaths, tensInterval, prevTempVal)
         
         %Format time values
         times = str2double(split(string(metadata.TIME), ':'));
+        
+        if size(times,2) == 1
+            times = times';
+        end
+        
         timeindices = intersect(find((metadata.DATE+metadata.TIME - app.Date) <= duration(24,0,0)- duration(app.Date.Hour,0,0)),...
             find((metadata.DATE+metadata.TIME - app.Date) >= 0));
         times = times(timeindices,:);
-        times = 60^2*(times(:,1) - times(1,1)) + 60*(times(:,2)-times(1,2)) + times(:,3)-times(1,3);
         
-        %Find the time indexes that concern us
-        timedif = times - tensInterval;
-        indices = intersect(find(timedif >= 0),find(timedif <= 10));
+        temps = [];
+        if ~isempty(times)
+            times = 60^2*(times(:,1) - times(1,1)) + 60*(times(:,2)-times(1,2)) + times(:,3)-times(1,3);
+
+            %Find the time indexes that concern us
+            timedif = times - tensInterval;
+            indices = intersect(find(timedif >= 0),find(timedif <= 10));
+
+            %Checks if the temp values exist
+            temps = metadata.TEMP_C_(timeindices);
+            temps = temps(indices);
+        else
+            avgTemp = NaN
+            return ;
+        end
         
-        %Checks if the temp values exist
-        temps = metadata.TEMP_C_(timeindices);
-        temps = temps(indices);
         if ~isempty(temps)
             %Average the temps
             mictempavg = mean(temps);
