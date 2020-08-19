@@ -38,4 +38,27 @@ end
 catch e
     disp("error");
 end
+
+%% Elimination of repeated columns, Algorithm written by Farshad
+matchedMatrixFinal(matchedMatrixFinal == 0) = NaN;
+i = 1;
+flag = false;
+while i < size(matchedMatrixFinal,2) && flag == false
+    column1 = matchedMatrixFinal(:,1);
+    x = isnan(column1);
+    for j = 2:size(matchedMatrixFinal,2) + 1
+        if j == size(matchedMatrixFinal,2) + 1
+            flag = true;
+            break
+        else
+            column2 = matchedMatrixFinal(:,j);
+            if column1(x==0) == column2(x==0)
+                matchedMatrixFinal(:,1) = [];
+                break
+            end
+        end
+    end
+    i = i+1;
+end
+
 end
