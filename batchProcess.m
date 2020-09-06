@@ -6,15 +6,16 @@ function batchProcess(app)
     app.UpdateAudio(0);
     
     %Preallocate temps matrix
-    temps = zeros(ceil(app.Samples/(app.Fs*app.loadSubIntervalRate)),1);
     i = 1;
-    prevTempVal = NaN;
+    temps = avg10sTemp(app);
     while true && strcmp(app.ModeSwitch.Value,"Offline")
-        totalSeconds = (app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate) + 10;
+        if strcmp(app.BatchProcessingTypeSwitch.Value, "Parallel")
+            totalSeconds = (app.curLoadInterval+1)*app.loadIntervalRate;
+        else
+            totalSeconds = (app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate) + 10;
+        end
         [CallA,CallB,CallC,CallD] = QCallDetection(app);
         CallsA = [CallsA; CallA];CallsB = [CallsB; CallB];CallsC = [CallsC; CallC];CallsD = [CallsD; CallD];
-        temps(i) = avg10sTemp(app.metPaths,totalSeconds-10,prevTempVal);
-        prevTempVal = temps(i);
         if (~isempty(CallA) + ~isempty(CallB) + ~isempty(CallC) + ~isempty(CallD))/4  >= 3/4
             matchedMatrix = [matchedMatrix GM_MatchCalls(CallA,CallB,CallC,CallD,GM_EstimateMaxTimeLag(readtable(app.metPaths(1)),...
                 readtable(app.metPaths(2)),readtable(app.metPaths(3)),readtable(app.metPaths(4)),...
@@ -66,7 +67,7 @@ function batchProcess(app)
         for i = 2:size(app.micNames,2)+1
             T{i,1} = app.micNames(i-1);
             T{i,2} = app.micpos(i-1,1);
-            T{i,3} = app.micpos(i-1,2);
+            T{i,3} = app.micpos(i-1,1);
         end
         writecell(T,resultfile,"Sheet","Microphone Positions(GPS)");
         
@@ -75,7 +76,7 @@ function batchProcess(app)
         micposUTM = ll2utm(app.micpos(:,1),app.micpos(:,2));
         for i = 2:size(app.micNames,2)+1
             T{i,2} = micposUTM(i-1,1);
-            T{i,3} = micposUTM(i-1,2);
+            T{i,3} = micposUTM(i-1,1);
         end
         writecell(T,resultfile,"Sheet","Microphone Positions(UTM)");
         
@@ -102,7 +103,7 @@ function batchProcess(app)
         T = table(CallsD);
         T.Properties.VariableNames = "Time Detected";
         writetable(T,resultfile,"Sheet",app.micNames(4));
-        
+
         T = table((1:size(matchedMatrix,2))',matchedMatrix(1,:)',matchedMatrix(2,:)',matchedMatrix(3,:)',matchedMatrix(4,:)');
         T.Properties.VariableNames = ["Number Matched Call" {app.micNames(1);app.micNames(2);app.micNames(3);...
             app.micNames(4)}'];
@@ -128,43 +129,49 @@ function batchProcess(app)
         app.FinishButton.Visible = true;
     end
 end
-function avgTemp = avg10sTemp(metPaths, tensInterval, prevTempVal)
+function avgTemp = avg10sTemp(app)
     %Preallocate the array
-    mictempavgs = zeros(1,4);
+    avgTemp = zeros(app.Samples/(app.Fs*10),1);
     
-    % Iterate through metadata filepaths.
-    for i = 1:length(metPaths)
-        %Read data in
-        metadata = readtable(metPaths(i));
+    timeleft = app.Samples/app.Fs;
+    time = zeros(1,3);
+    for i = 2:-1:0
+       time(i+1) = floor(timeleft/60^i);
+       timeleft = mod(timeleft,60^i);
+    end
+    time = flip(time);
+    
+    tempsMat = {};
+    times = {};
+    metadata = {readtable(app.metPaths(1)) readtable(app.metPaths(2)) readtable(app.metPaths(3)) readtable(app.metPaths(4))};
+    for i = 1:length(app.metPaths)
+        timeindices = find(isbetween(metadata{1,i}.DATE + metadata{1,i}.TIME, app.Date, app.Date+duration(time(1),time(2),time(3))));
         
-        %Format time values
-        times = str2double(split(string(metadata.TIME), ':'));
-        if size(times,2) == 1
-            times = times';
-        end
-        times = 60^2*(times(:,1) - times(1,1)) + 60*(times(:,2)-times(1,2)) + times(:,3)-times(1,3);
-        
-        %Find the time indexes that concern us
-        timedif = times - tensInterval;
-        indices = intersect(find(timedif >= 0),find(timedif <= 10));
-        
-        %Checks if the temp values exist
-        temps = metadata.TEMP_C_(indices);
-        if ~isempty(temps)
-            %Average the temps
-            mictempavg = mean(temps);
+        if isempty(timeindices)
+            error("Metadata does not have temperature values for the duration of the recording");
         else
-            %Assume the previous temp value is the current temp value for
-            %this 10 seconds
-            mictempavg = prevTempVal;
+            tempsMat{1,i} = metadata{1,i}.TEMP_C_(timeindices);
+            temptime = str2double(split(string(metadata{1,i}.TIME(timeindices)),":"));
+            temptime = 60^2*(temptime(:,1)-temptime(1,1)) + 60*(temptime(:,2)-temptime(1,2)) + temptime(:,3)-temptime(1,3);
+            times{1,i} = temptime;
         end
-        
-        %Append average to the avgs matrix
-        mictempavgs(i) = mictempavg;
     end
     
-    %Return full temp average
-    avgTemp = mean(mictempavgs);
+    tempavgtemps = zeros(1,4);
+    num = 1;
+    for i = 0:10:app.Samples/app.Fs
+        
+        for j = 1:length(app.metPaths)
+            timeVal = floor(times{1,j}(min(abs(times{1,j} - i)) == abs(times{1,j}-i))/10)*10;
+            if length(timeVal) > 1
+                timeVal = timeVal(1);
+            end
+            tempind = intersect(find(times{1,j} - timeVal >= 0), find(times{1,j} - timeVal <= 10));
+            tempavgtemps(j) = mean(tempsMat{1,j}(tempind));
+        end
+        avgTemp(num) = mean(tempavgtemps);
+        num = num + 1;
+    end
 end
 
 function tempMat = getTempMatrix(temps,timeVals)
