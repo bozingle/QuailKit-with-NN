@@ -1,9 +1,9 @@
-function batchProcess(app)
+function batchProcess(app,updateLoadInterval)
     %% Batch Process
     matchedMatrix = [];
     CallsA = [];CallsB = [];CallsC = [];CallsD = [];
     app.curLoadInterval = 0; app.curSubInterval = 0;
-    app.UpdateAudio(0);
+    app.UpdateAudio(0,updateLoadInterval);
     
     %Preallocate temps matrix
     i = 1;
@@ -147,9 +147,7 @@ function avgTemp = avg10sTemp(app)
     for i = 1:length(app.metPaths)
         timeindices = find(isbetween(metadata{1,i}.DATE + metadata{1,i}.TIME, app.Date, app.Date+duration(time(1),time(2),time(3))));
         
-        if isempty(timeindices)
-            error("Metadata does not have temperature values for the duration of the recording");
-        else
+        if ~isempty(timeindices)
             tempsMat{1,i} = metadata{1,i}.TEMP_C_(timeindices);
             temptime = str2double(split(string(metadata{1,i}.TIME(timeindices)),":"));
             temptime = 60^2*(temptime(:,1)-temptime(1,1)) + 60*(temptime(:,2)-temptime(1,2)) + temptime(:,3)-temptime(1,3);
@@ -188,12 +186,3 @@ function tempMat = getTempMatrix(temps,timeVals)
     tempMat = tempMat';
 end
 
-function lagMatrix = getLagMatrix(matchedMatrix)
-   lagMatrix = [];
-   i = 1;
-   while i <= size(matchedMatrix,2)
-       minVal = min(matchedMatrix(:,i));
-       lagMatrix(:,i) = matchedMatrix(:,i) - minVal;
-       i = i + 1;
-   end
-end

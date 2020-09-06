@@ -105,30 +105,6 @@ function avgTemp = avg10sTemp(app,metPaths, tensInterval, prevTempVal)
     avgTemp = mean(mictempavgs);
 end
 
-function tempMat = getTempMatrix(temps,timeVals)
-    %Preallocate tempMat
-    tempMat = zeros(size(timeVals,1),1);
-    %Iterate through the temperatures
-    for i = 1:length(temps)
-        %Find timeVal indices for tempMat.
-        tempTimeVals = timeVals - i*10;
-        indices = intersect(find(tempTimeVals >= 0),find(tempTimeVals < 10))
-        
-        tempMat(indices) = temps(i);
-    end
-    tempMat = tempMat';
-end
-
-function lagMatrix = getLagMatrix(matchedMatrix)
-   lagMatrix = [];
-   i = 1;
-   while i <= size(matchedMatrix,2)
-       minVal = min(matchedMatrix(:,i));
-       lagMatrix(:,i) = matchedMatrix(:,i) - minVal;
-       i = i + 1;
-   end
-end
-
 %% Old Function
 % function S = Localization(app,matchedMatrix)
 %     %matchedMatrix(find(matchedMatrix == 0)) = NaN;
