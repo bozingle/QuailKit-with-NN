@@ -38,7 +38,7 @@ function val = Read(app)
             end
             
             app.micpos = zeros(size(app.micPaths,2),4);
-            app.metPaths = zeros(size(app.micPaths,2),1);
+            app.metPaths = string(zeros(size(app.micPaths,1),1));
             
             for k = 1:size(app.micPaths,1)
                 metfilename = string(split(app.micPaths(k).name,'_'));
