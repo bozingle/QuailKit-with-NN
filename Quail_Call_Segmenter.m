@@ -8,12 +8,12 @@ set(gca,'LooseInset',get(gca,'TightInset'));
 colorbar('off');
 
 % Directories to save scalogram images and corresponding audio segments
-scaloDir='C:\Users\Joel\Desktop\Scalogram_Generation\Scalograms';
-audioDir='C:\Users\Joel\Desktop\Scalogram_Generation\audiofiles';
+scaloDir='C:\Users\farsh\Documents\QuailKit_Data\132000';
+audioDir='C:\Users\farsh\Documents\QuailKit_Data\132000\AudioFiles\';
 
 % Read recording file
-[signal,samplerate]=audioread('C:\Users\Joel\Desktop\AVL Work\RecordData\10_00\Mics\SM304472_0+1_20181219_100000.wav');
-
+[signal,samplerate]=audioread('C:\Users\farsh\Documents\QuailKit_Data\11-29-2019\Mics\SM304506_0+1_20191129_060000.wav');
+signal = signal(:,1);
 % Duration = bits / bps
 dur=length(signal)/samplerate;
 
@@ -24,8 +24,10 @@ voicesPerOctave = 8;
 %Time window and overlap in seconds
 window = 2;
 overlap = 1;
+i = 1;
 
-for k = 0.0001:overlap:dur+overlap
+for k = 4000:overlap:4020+overlap
+    tic
     set(gca, 'Visible', 'off');
     set(gca,'LooseInset',get(gca,'TightInset'));
     colorbar('off');
@@ -50,8 +52,8 @@ for k = 0.0001:overlap:dur+overlap
         mo=mnd(n);
     end
     
-    sorx=sort(X);
-    sigx=[mna flip(mnd)];
+%     sorx=sort(X);
+%     sigx=[mna flip(mnd)];
 
     t1 = datestr(seconds(k),'HH-MM-SS');
     t2 = datestr(seconds(k+window),'HH-MM-SS');
@@ -68,13 +70,15 @@ for k = 0.0001:overlap:dur+overlap
     set(h, 'Visible', 'off');
     filename=strcat(scaloDir,title,'.png');
     
-    % Save scalogram image
+    %Save scalogram image
     exportgraphics(h,filename,'BackgroundColor','none','Resolution',300)
-    
-    filename=strcat(audioDir,title,'.wav');
+    toc
+    %filename=strcat(audioDir,title,'.wav');
     
     % Save audio segment
-    audiowrite(filename,X,samplerate)
+%     audiowrite(filename,X,samplerate)
     close all
-    
+    disp('end')
 end
+
+

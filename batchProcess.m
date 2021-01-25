@@ -14,12 +14,15 @@ function batchProcess(app,updateLoadInterval)
         else
             totalSeconds = (app.curLoadInterval*app.loadIntervalRate + app.curSubInterval*app.loadSubIntervalRate) + 10;
         end
-        [CallA,CallB,CallC,CallD] = QCallDetection(app);
-        CallsA = [CallsA; CallA];CallsB = [CallsB; CallB];CallsC = [CallsC; CallC];CallsD = [CallsD; CallD];
-        if (~isempty(CallA) + ~isempty(CallB) + ~isempty(CallC) + ~isempty(CallD))/4  >= 3/4
-            matchedMatrix = [matchedMatrix GM_MatchCalls(CallA,CallB,CallC,CallD,GM_EstimateMaxTimeLag(readtable(app.metPaths(1)),...
-                readtable(app.metPaths(2)),readtable(app.metPaths(3)),readtable(app.metPaths(4)),...
-                temps(i)))];
+        
+        if app.displayMode == 0
+            [CallA,CallB,CallC,CallD] = QCallDetection(app);
+            CallsA = [CallsA; CallA];CallsB = [CallsB; CallB];CallsC = [CallsC; CallC];CallsD = [CallsD; CallD];
+            if (~isempty(CallA) + ~isempty(CallB) + ~isempty(CallC) + ~isempty(CallD))/4  >= 3/4
+                matchedMatrix = [matchedMatrix GM_MatchCalls(CallA,CallB,CallC,CallD,GM_EstimateMaxTimeLag(readtable(app.metPaths(1)),...
+                    readtable(app.metPaths(2)),readtable(app.metPaths(3)),readtable(app.metPaths(4)),...
+                    temps(i)))];
+            end
         end
         
         if totalSeconds*app.Fs < app.Samples && totalSeconds >= 0
@@ -34,7 +37,7 @@ function batchProcess(app,updateLoadInterval)
         end
     end
     
-    if strcmp(app.ModeSwitch.Value,"Offline")
+    if strcmp(app.ModeSwitch.Value,"Offline") && app.displayMode == 0
         %Instantiations
         filename = fullfile(pwd,"S2 Sound Finder for Spreadsheets.xls");
         matchedMatrix(matchedMatrix == 0) = NaN;
